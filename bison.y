@@ -59,6 +59,7 @@
                                 onoma : kanonas { kwdikas C } */
 program
         : program literal_line
+        | program error NEWLINE { yyerrok; } 
         | 
         ;
 
@@ -310,7 +311,7 @@ int main(int argc, char *argv[])  {
 
         fprintf(yyout, "Tokens %d\n", token_count);
         fprintf(yyout, "Token errors %d\n", token_error_count);
-        fprintf(yyout, "Syntax errors %d\n",bad_counter);
+        fprintf(yyout, "Syntax errors %d\n",yynerrs);
         fprintf(yyout, "Expresions %d\n", counter);
         
 
