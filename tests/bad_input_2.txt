@@ -1,0 +1,2 @@
+if a < b & c > a \& d > a: # lexer will expect a newline after the \
+    things()

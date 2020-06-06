@@ -1,0 +1,48 @@
+a=b+c
+var1=var2+3
+res1=3*5
+res2=2**8
+res3=a<=b
+z=x^y
+nikos = 30
+list1=["Maria","Dimitris","Nikos","Georgia"] 
+imag1=314e2J
+tuple1=(13e0,0.001,0.12e3,13E4)
+tuple2=[]
+num = 16 
+sum = 0
+while num > 0:	
+	sum += num
+	num -= 1
+
+print(sum)
+
+my_list = ['p','r','o','b','e']
+counter = 0
+while counter <= 10 :
+	print(list)
+	counter += 1
+
+merge_list = (1,2) + (1,2,3)
+if 3<2:a=3;print(a)
+
+def sum(a, b):
+	s = a + b
+	return s
+
+print len(["v"])
+
+cmp([2,3],[4,1])
+print("Hello world")
+
+def sum(n, m):
+	"returns the sum of 2 nums"
+	s = n + m
+	return s
+
+if var < 3 \
+ | var > 0:
+	var = var + 1; i = 5
+
+cmp([2,3],(44,2))
+a = sum(2, 3)

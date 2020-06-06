@@ -1,0 +1,2 @@
+if condindition # missing :
+    do_the_thing()

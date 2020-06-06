@@ -1,0 +1,3 @@
+def a_function(with, args):
+but_not_indented()
+Whoops()
