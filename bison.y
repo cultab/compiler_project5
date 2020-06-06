@@ -135,7 +135,7 @@ literal_line
 
 logic_line
         : logic_line ';' statement
-        | logic_line error statement { yyerror("Warning: missing ';' separator in line.") }
+        | logic_line error statement { yyerror("Warning: missing ';' separator in line."); }
         | statement
         ;
 
@@ -149,20 +149,20 @@ statement
 if
         : IF expr ':' NEWLINE {line++;} indentbody   { found("If statement"); }
         | IF expr ':' logic_line NEWLINE   { found("If statement"); found("Line"); line++;}
-        | IF expr error NEWLINE {line++;} indentbody { yyerror("Warning: Missing ':' after if condition.\n"); found("If statement"); yyerrok; }
+        | IF expr error NEWLINE {yyerror("Warning! ':' expected after the  \n");line++;} indentbody { yyerror("Warning: Missing ':' after if condition.\n"); found("If statement"); yyerrok; }
         | IF expr error logic_line NEWLINE { yyerror("Warning: Missing ':' after if condition.\n"); found("If statement"); found("Line"); yyerrok; line++;}
         ;
 
 while
         : WHILE expr ':' NEWLINE {line++;} indentbody   { found("While loop"); }
         | WHILE expr ':' logic_line NEWLINE   { found("While loop"); found("Line"); line++;}
-        | WHILE expr error NEWLINE {line++;} indentbody { yyerror("Warning: Missing ':' after while condition.\n"); found("While loop"); yyerrok; }
+        | WHILE expr error NEWLINE {yyerror("Warning! ':' expected after the  %d\n"); line++;} indentbody { yyerror("Warning: Missing ':' after while condition.\n"); found("While loop"); yyerrok; }
         | WHILE expr error logic_line NEWLINE { yyerror("Warning: Missing ':' after while condition.\n"); found("While loop"); found("Line"); yyerrok; line++; }
         ;
 
 list
         : '[' content ']' { found("Literal List"); $$ = $2; }
-        : '[' error ']'   { yyerror("Error in literal list."); found("Literal List"); yyerrok; $$ = $2; }
+        | '[' error ']'   { yyerror("Error in literal list."); found("Literal List"); yyerrok; $$ = $2; }
         ;
 
 slice
@@ -172,7 +172,7 @@ slice
 
 tuple
         : '(' content ')' { found("Literal Tuple"); $$ = $2; }
-        : '(' error ')'   { yyerror("Error in literal tuple."); found("Literal Tuple"); yyerrok; $$ = $2; }
+        | '(' error ')'   { yyerror("Error in literal tuple."); found("Literal Tuple"); yyerrok; $$ = $2; }
         ;
 
 merge   : list '+' list   { found("Merge of List"); $$ = $1 + $3; }
@@ -260,8 +260,8 @@ comp_function
         | CMP '(' VARIABLE ',' tuple ')'    { found("Compare Function with Variable and Tuple"); }
         | CMP '(' list ',' VARIABLE ')'     { found("Compare Function with List and Variable"); }
         | CMP '(' VARIABLE ',' list ')'     { found("Compare Function with Variable and List"); }
-        | CMP '(' list ',' tuple ')'    { yyerror("Mismatch of argument types (CMP LIST AND TUPLE)"); bad_counter++ ;} //Syntax error
-        | CMP '(' tuple ',' list ')'    { yyerror("Mismatch of argument types (CMP LIST AND TUPLE)"); bad_counter++ ;} //Syntax error
+        | CMP '(' list ',' tuple ')'    { yyerror("Mismatch of argument types (CMP LIST AND TUPLE)"); yynerrs++; } //Syntax error
+        | CMP '(' tuple ',' list ')'    { yyerror("Mismatch of argument types (CMP LIST AND TUPLE)"); yynerrs++; } //Syntax error
         ;
 
 %%
