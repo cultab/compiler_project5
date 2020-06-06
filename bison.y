@@ -135,7 +135,7 @@ literal_line
 
 logic_line
         : logic_line ';' statement
-        | logic_line error statement { yyerror("Warning: missing ';' separator in line."); }
+        | logic_line error statement { yyerror("Warning: missing ';' separator between statements."); }
         | statement
         ;
 
@@ -149,14 +149,14 @@ statement
 if
         : IF expr ':' NEWLINE {} indentbody   { found("If statement"); }
         | IF expr ':' logic_line NEWLINE   { found("If statement"); found("Line"); }
-        | IF expr error NEWLINE {yyerror("Warning! ':' expected after the  \n");} indentbody { yyerror("Warning: Missing ':' after if condition.\n"); found("If statement"); yyerrok; }
+        | IF expr error NEWLINE {yyerror("Warning: Missing ':' after if condition.\n");} indentbody { found("If statement"); yyerrok; }
         | IF expr error logic_line NEWLINE { yyerror("Warning: Missing ':' after if condition.\n"); found("If statement"); found("Line"); yyerrok; }
         ;
 
 while
         : WHILE expr ':' NEWLINE {} indentbody   { found("While loop"); }
         | WHILE expr ':' logic_line NEWLINE   { found("While loop"); found("Line"); }
-        | WHILE expr error NEWLINE {yyerror("Warning! ':' expected after the  %d\n"); } indentbody { yyerror("Warning: Missing ':' after while condition.\n"); found("While loop"); yyerrok; }
+        | WHILE expr error NEWLINE {yyerror("Warning: Missing ':' after while condition.\n"); } indentbody { found("While loop"); yyerrok; }
         | WHILE expr error logic_line NEWLINE { yyerror("Warning: Missing ':' after while condition.\n"); found("While loop"); found("Line"); yyerrok;  }
         ;
 
@@ -260,8 +260,8 @@ comp_function
         | CMP '(' VARIABLE ',' tuple ')'    { found("Compare Function with Variable and Tuple"); }
         | CMP '(' list ',' VARIABLE ')'     { found("Compare Function with List and Variable"); }
         | CMP '(' VARIABLE ',' list ')'     { found("Compare Function with Variable and List"); }
-        | CMP '(' list ',' tuple ')'    { yyerror("Mismatch of argument types (CMP LIST AND TUPLE)"); yynerrs++; } //Syntax error
-        | CMP '(' tuple ',' list ')'    { yyerror("Mismatch of argument types (CMP LIST AND TUPLE)"); yynerrs++; } //Syntax error
+        | CMP '(' list ',' tuple ')'        { yyerror("Mismatch of argument types (CMP LIST AND TUPLE)"); yynerrs++; } //Syntax error
+        | CMP '(' tuple ',' list ')'        { yyerror("Mismatch of argument types (CMP LIST AND TUPLE)"); yynerrs++; } //Syntax error
         ;
 
 %%
