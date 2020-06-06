@@ -33,8 +33,8 @@
          * of how many expressions the parser has found
          */
         int counter = 0;
-        int line = 1;
 
+        extern int line;
         extern int token_count;
         extern int token_error_count;
         extern FILE *yyin, *yyout;
@@ -59,7 +59,7 @@
                                 onoma : kanonas { kwdikas C } */
 program
         : program literal_line
-        | program error NEWLINE { yyerrok; line++; } 
+        | program error NEWLINE { yyerrok;  } 
         | 
         ;
 
@@ -127,10 +127,10 @@ assignable
         ;
 
 literal_line
-        : logic_line NEWLINE { found("Line"); line++; }
+        : logic_line NEWLINE { found("Line");  }
         | if                 { found("Line"); }
         | while              { found("Line"); }
-        | NEWLINE            { found("Empty Line"); line++;}
+        | NEWLINE            { found("Empty Line"); }
         ;
 
 logic_line
@@ -147,17 +147,17 @@ statement
         ;
 
 if
-        : IF expr ':' NEWLINE {line++;} indentbody   { found("If statement"); }
-        | IF expr ':' logic_line NEWLINE   { found("If statement"); found("Line"); line++;}
-        | IF expr error NEWLINE {yyerror("Warning! ':' expected after the  \n");line++;} indentbody { yyerror("Warning: Missing ':' after if condition.\n"); found("If statement"); yyerrok; }
-        | IF expr error logic_line NEWLINE { yyerror("Warning: Missing ':' after if condition.\n"); found("If statement"); found("Line"); yyerrok; line++;}
+        : IF expr ':' NEWLINE {} indentbody   { found("If statement"); }
+        | IF expr ':' logic_line NEWLINE   { found("If statement"); found("Line"); }
+        | IF expr error NEWLINE {yyerror("Warning! ':' expected after the  \n");} indentbody { yyerror("Warning: Missing ':' after if condition.\n"); found("If statement"); yyerrok; }
+        | IF expr error logic_line NEWLINE { yyerror("Warning: Missing ':' after if condition.\n"); found("If statement"); found("Line"); yyerrok; }
         ;
 
 while
-        : WHILE expr ':' NEWLINE {line++;} indentbody   { found("While loop"); }
-        | WHILE expr ':' logic_line NEWLINE   { found("While loop"); found("Line"); line++;}
-        | WHILE expr error NEWLINE {yyerror("Warning! ':' expected after the  %d\n"); line++;} indentbody { yyerror("Warning: Missing ':' after while condition.\n"); found("While loop"); yyerrok; }
-        | WHILE expr error logic_line NEWLINE { yyerror("Warning: Missing ':' after while condition.\n"); found("While loop"); found("Line"); yyerrok; line++; }
+        : WHILE expr ':' NEWLINE {} indentbody   { found("While loop"); }
+        | WHILE expr ':' logic_line NEWLINE   { found("While loop"); found("Line"); }
+        | WHILE expr error NEWLINE {yyerror("Warning! ':' expected after the  %d\n"); } indentbody { yyerror("Warning: Missing ':' after while condition.\n"); found("While loop"); yyerrok; }
+        | WHILE expr error logic_line NEWLINE { yyerror("Warning: Missing ':' after while condition.\n"); found("While loop"); found("Line"); yyerrok;  }
         ;
 
 list
