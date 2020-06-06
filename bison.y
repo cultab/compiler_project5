@@ -176,7 +176,10 @@ tuple
         ;
 
 merge   : list '+' list   { found("Merge of List"); $$ = $1 + $3; }
+        | list error list { found("Warning! '+' expected between lists.\n"); $$ = $1 + $3; }
         | tuple '+' tuple { found("Merge of Tuple" ); $$ = $1 + $3; }
+        | tuple error tuple { found("Warning! '+' expected between tuples.\n"); $$ = $1 + $3; }
+        ;
 
 content
         : content ',' listable { $$ = $1 + 1; }
