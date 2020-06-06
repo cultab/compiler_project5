@@ -148,11 +148,15 @@ statement
 if
         : IF expr ':' NEWLINE indentbody    { found("If statement"); }
         | IF expr ':' logic_line NEWLINE         { found("If statement"); found("Line");}
+        | IF expr error NEWLINE indentbody { yyerror("Warning! ':' expected after the  \n"); found("If statement"); yyerrok; }
+        | IF expr error logic_line NEWLINE       {  yyerror("Warning! ':' expected before  \n"); found("If statement"); found("Line");yyerrok;}
         ;
 
 while
         : WHILE expr ':' NEWLINE indentbody { found("While loop"); }
         | WHILE expr ':' logic_line NEWLINE       { found("While loop"); found("Line");}
+        | WHILE expr error NEWLINE indentbody { yyerror("Warning! ':' expected after the  \n"); found("While loop"); yyerrok; }
+        | WHILE expr error logic_line NEWLINE       {  yyerror("Warning! ':' expected before  \n"); found("While loop"); found("Line");yyerrok;}
         ;
 
 list
@@ -262,7 +266,7 @@ void yyerror(const char *restrict format, ...)
 {
         va_list vl;
 
-        fprintf(yyout, "Error:");
+        //fprintf(yyout, "Error:");
 
         va_start(vl, format);
         vfprintf(yyout,format, vl);
