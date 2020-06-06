@@ -172,7 +172,10 @@ tuple
         ;
 
 merge   : list '+' list   { found("Merge of List"); $$ = $1 + $3; }
+        | list error list { found("Warning! '+' expected between lists.\n"); $$ = $1 + $3; }
         | tuple '+' tuple { found("Merge of Tuple" ); $$ = $1 + $3; }
+        | tuple error tuple { found("Warning! '+' expected between tuples.\n"); $$ = $1 + $3; }
+        ;
 
 content
         : content ',' listable { $$ = $1 + 1; }
@@ -219,7 +222,7 @@ func
 
 userfunc
         : DEF VARIABLE '(' arglist ')' ':' NEWLINE indentbody INDENT RETURN expr
-        : DEF VARIABLE '(' error ')' ':' NEWLINE indentbody INDENT RETURN expr { yyerror("Error in function definition argument list."); }
+        | DEF VARIABLE '(' error ')' ':' NEWLINE indentbody INDENT RETURN expr { yyerror("Error in function definition argument list."); }
         | DEF VARIABLE '(' arglist ')' ':' NEWLINE indentbody INDENT RETURN
         | DEF VARIABLE '(' error ')' ':' NEWLINE indentbody INDENT RETURN { yyerror("Error in function definition argument list."); }
         ;
