@@ -30,7 +30,7 @@ int token_error_count = 0;
 void print(const char *s);
 
 /* easy print with line count */
-void error(const char *restrict format, ...);
+extern void yyerror(const char *restrict format, ...);
 
 %}
 
@@ -345,12 +345,12 @@ UNKNOWN_TOKEN   .
         return STRING;
 }
 
-<string_d>[\"\'\r]  { BEGIN(unknown); yymore(); }
+<string_d>["'\r]  { BEGIN(unknown); yymore(); }
 
 <string_d>[\n] { yyless(yyleng-1); BEGIN(unknown); }
 
 <string_d><<EOF>> {
-                error("UNKNOWN TOKEN, value=\"%s\"", yytext);
+                yyerror("UNKNOWN TOKEN, value=\"%s\"", yytext);
                 }
 
 <string_d>.     { yymore(); }
@@ -370,12 +370,12 @@ UNKNOWN_TOKEN   .
         return STRING;
 }
 
-<string_s>[\"\'\r]  { BEGIN(unknown); yymore(); }
+<string_s>["'\r]  { BEGIN(unknown); yymore(); }
 
 <string_s>[\n] { yyless(yyleng-1); BEGIN(unknown); }
 
 <string_s><<EOF>> {
-                error("UNKNOWN TOKEN, value=\"%s\"", yytext);
+                yyerror("UNKNOWN TOKEN, value=\"%s\"", yytext);
                 }
 
 <string_s>.     { yymore(); }
@@ -414,7 +414,7 @@ UNKNOWN_TOKEN   .
  /* if there is a character other than a newline after the slash it's an error
   * so we print an appropriate message and enter the appropriate state
   */
-<concat_line>. { error("Expected newline after '\\', found: '%c'", yytext[yyleng-1]); BEGIN(unknown); }
+<concat_line>. { yyerror("Expected newline after '\\', found: '%c'", yytext[yyleng-1]); BEGIN(unknown); }
 
 \n { 
         BEGIN(indent);
@@ -467,11 +467,17 @@ UNKNOWN_TOKEN   .
 <unknown>{DELIMITER} {
                 yyless(yyleng-1);
                 token_error_count++;
-                error("UNKNOWN TOKEN, value=\"%s\"", yytext);
+                yyerror("UNKNOWN TOKEN, value=\"%s\"", yytext);
                 BEGIN(INITIAL);
                 }
 
-<unknown>[\n] { line++; yymore(); }
+<unknown>[\n]   { 
+                yyless(yyleng-1);
+                token_error_count++;
+                yyerror("UNKNOWN TOKEN, value=\"%s\"", yytext);
+                line++;
+                BEGIN(INITIAL);
+                }
 
 <unknown>. { yymore(); }
 %%
@@ -481,19 +487,6 @@ UNKNOWN_TOKEN   .
 void print(const char *s)
 {
         fprintf(yyout, "\tFlex -> Found token: %s \n", s);
-}
-
-void error(const char *restrict format, ...)
-{
-        va_list vl;
-
-        fprintf(yyout, "\tError on line %d:, ", line);
-
-        va_start(vl, format);
-        vfprintf(yyout,format, vl);
-        fprintf(yyout, "\n");
-        va_end(vl);
-        return;
 }
 
 /* respect indent size of 8 */
