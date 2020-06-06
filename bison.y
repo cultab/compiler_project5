@@ -148,11 +148,15 @@ statement
 if
         : IF expr ':' NEWLINE indentbody   { found("If statement"); }
         | IF expr ':' logic_line NEWLINE   { found("If statement"); found("Line"); }
+        | IF expr NEWLINE indentbody       { found("If statement"); yyerror("Missing ':' after if condition."); }
+        | IF expr logic_line NEWLINE       { found("If statement"); found("Line"); yyerror("Missing ':' after if condition."); }
         ;
 
 while
-        : WHILE expr ':' NEWLINE indentbody   { found("While loop"); }
-        | WHILE expr ':' logic_line NEWLINE   { found("While loop"); found("Line"); }
+        : WHILE expr ':' NEWLINE indentbody { found("While loop"); }
+        | WHILE expr ':' logic_line NEWLINE { found("While loop"); found("Line"); }
+        | WHILE expr NEWLINE indentbody     { found("While loop"); yyerror("Missing ':' after while condition."); }
+        | WHILE expr logic_line NEWLINE     { found("While loop"); found("Line"); yyerror("Missing ':' after while condition."); }
         ;
 
 list
@@ -188,7 +192,7 @@ listable
 
 builtin
         : DEL '(' VARIABLE ')'    { found("Delete Function"); }
-        | DEL '(' error ')'       { yyerror("Error in del() arguments."); found("Delete Function"); }
+        | DEL '(' error ')'       { yyerror("Error in del() arguments."); yyclearin; found("Delete Function"); }
         | LEN '(' list ')'        { found("Length Function"); }
         | LEN '(' VARIABLE ')'    { found("Length Function"); }
         | LEN '(' tuple ')'       { found("Length Function"); }
@@ -219,9 +223,12 @@ func
 
 userfunc
         : DEF VARIABLE '(' arglist ')' ':' NEWLINE indentbody INDENT RETURN expr
-        : DEF VARIABLE '(' error ')' ':' NEWLINE indentbody INDENT RETURN expr { yyerror("Error in function definition argument list."); }
+        | DEF VARIABLE '(' error ')'   ':' NEWLINE indentbody INDENT RETURN expr { yyerror("Error in function definition argument list."); }
         | DEF VARIABLE '(' arglist ')' ':' NEWLINE indentbody INDENT RETURN
-        | DEF VARIABLE '(' error ')' ':' NEWLINE indentbody INDENT RETURN { yyerror("Error in function definition argument list."); }
+        | DEF VARIABLE '(' error ')'   ':' NEWLINE indentbody INDENT RETURN      { yyerror("Error in function definition argument list."); }
+        | DEF VARIABLE '(' arglist ')' NEWLINE indentbody INDENT RETURN expr { yyerror("Missing ':' after function definition.") }
+        | DEF VARIABLE '(' arglist ')' NEWLINE indentbody INDENT RETURN      { yyerror("Missing ':' after function definition.") }
+
         ;
 
 arglist
@@ -283,7 +290,7 @@ void yyerror(const char *restrict format, ...)
 
 void found(const char *restrict name)
 {
-        fprintf(yyout, "\t\tParser found(%d): %s\n", counter, name);
+        fprintf(yyout, "\t\tParser -> Found(%d): %s\n", counter, name);
         counter++;
 }
 
