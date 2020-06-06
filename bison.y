@@ -59,8 +59,8 @@
                                 onoma : kanonas { kwdikas C } */
 program
         : program literal_line
-        | program error NEWLINE { yyerrok;  } 
-        | 
+        | program error NEWLINE { yyerrok; yyclearin; }
+        |
         ;
 
 type
@@ -135,7 +135,6 @@ literal_line
 
 logic_line
         : logic_line ';' statement
-        | logic_line error statement { yyerror("Warning: missing ';' separator between statements."); }
         | statement
         ;
 
@@ -147,17 +146,13 @@ statement
         ;
 
 if
-        : IF expr ':' NEWLINE {} indentbody   { found("If statement"); }
+        : IF expr ':' NEWLINE indentbody   { found("If statement"); }
         | IF expr ':' logic_line NEWLINE   { found("If statement"); found("Line"); }
-        | IF expr error NEWLINE {yyerror("Warning: Missing ':' after if condition.\n");} indentbody { found("If statement"); yyerrok; }
-        | IF expr error logic_line NEWLINE { yyerror("Warning: Missing ':' after if condition.\n"); found("If statement"); found("Line"); yyerrok; }
         ;
 
 while
-        : WHILE expr ':' NEWLINE {} indentbody   { found("While loop"); }
+        : WHILE expr ':' NEWLINE indentbody   { found("While loop"); }
         | WHILE expr ':' logic_line NEWLINE   { found("While loop"); found("Line"); }
-        | WHILE expr error NEWLINE {yyerror("Warning: Missing ':' after while condition.\n"); } indentbody { found("While loop"); yyerrok; }
-        | WHILE expr error logic_line NEWLINE { yyerror("Warning: Missing ':' after while condition.\n"); found("While loop"); found("Line"); yyerrok;  }
         ;
 
 list
@@ -168,6 +163,7 @@ list
 slice
         : VARIABLE '[' INTCONST ']'
         | VARIABLE '[' VARIABLE ']'
+        | VARIABLE '[' error ']' { yyerror("Error in array index."); yyerrok; }
         ;
 
 tuple
@@ -192,10 +188,13 @@ listable
 
 builtin
         : DEL '(' VARIABLE ')'    { found("Delete Function"); }
+        | DEL '(' error ')'       { yyerror("Error in del() arguments."); found("Delete Function"); }
         | LEN '(' list ')'        { found("Length Function"); }
         | LEN '(' VARIABLE ')'    { found("Length Function"); }
         | LEN '(' tuple ')'       { found("Length Function"); }
+        | LEN '(' error ')'       { yyerror("Error in len() arguments."); found("Length Function"); }
         | PRINT '(' printable ')' { found("Print Function"); }
+        | PRINT '(' error ')'     { yyerror("Error in print() arguments."); found("Print Function"); }
         | PRINT builtin           { found("Print Function"); }
         | comp_function
         ;
@@ -219,14 +218,16 @@ func
         ;
 
 userfunc
-        : DEF VARIABLE '(' arglist ')' ':' NEWLINE indentbody INDENT RETURN expr { $$ = $1;}
-        | DEF VARIABLE '(' arglist ')' ':' NEWLINE indentbody INDENT RETURN      { $$ = $1;}
+        : DEF VARIABLE '(' arglist ')' ':' NEWLINE indentbody INDENT RETURN expr
+        : DEF VARIABLE '(' error ')' ':' NEWLINE indentbody INDENT RETURN expr { yyerror("Error in function definition argument list."); }
+        | DEF VARIABLE '(' arglist ')' ':' NEWLINE indentbody INDENT RETURN
+        | DEF VARIABLE '(' error ')' ':' NEWLINE indentbody INDENT RETURN { yyerror("Error in function definition argument list."); }
         ;
 
 arglist
         : arglist ',' arg
         | arg
-        |
+        | 
         ;
 
 arg
@@ -262,6 +263,7 @@ comp_function
         | CMP '(' VARIABLE ',' list ')'     { found("Compare Function with Variable and List"); }
         | CMP '(' list ',' tuple ')'        { yyerror("Mismatch of argument types (CMP LIST AND TUPLE)"); yynerrs++; } //Syntax error
         | CMP '(' tuple ',' list ')'        { yyerror("Mismatch of argument types (CMP LIST AND TUPLE)"); yynerrs++; } //Syntax error
+        | CMP '(' error ')'                 { yyerror("Error in cmp() arguments."); found("Compare Function"); }
         ;
 
 %%

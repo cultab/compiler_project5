@@ -14,7 +14,7 @@ run: all
 	./pyparse
 
 test: all
-	./pyparse < input.txt
+	./pyparse input.txt output.txt
 
 tests: all
 	test_bad.sh
