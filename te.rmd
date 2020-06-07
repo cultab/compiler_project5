@@ -1,0 +1,20 @@
+---
+title: TITLE TODO
+titlepage: true
+logo: img/logo.jpg
+logo-width: 200
+titlepage-rule-color: "123c64"
+author: 171014 Ευάγγελος Κατσανδρής
+output: 
+    pdf_document:
+        template: eisvogel
+        latex_engine: xelatex
+        number_sections: true
+        toc: true
+        pandoc_args: ["--highlight-style", "tango"]
+header-includes:
+caption-justification: centering
+toc-own-page: true
+toc-title: Περιεχόμενα
+fontsize: 10pt
+---

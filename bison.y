@@ -229,8 +229,8 @@ userfunc
         | DEF VARIABLE '(' error ')'   ':' NEWLINE indentbody INDENT RETURN expr { yyerror("Error in function definition argument list."); }
         | DEF VARIABLE '(' arglist ')' ':' NEWLINE indentbody INDENT RETURN
         | DEF VARIABLE '(' error ')'   ':' NEWLINE indentbody INDENT RETURN      { yyerror("Error in function definition argument list."); }
-        | DEF VARIABLE '(' arglist ')' NEWLINE indentbody INDENT RETURN expr { yyerror("Missing ':' after function definition.") }
-        | DEF VARIABLE '(' arglist ')' NEWLINE indentbody INDENT RETURN      { yyerror("Missing ':' after function definition.") }
+        | DEF VARIABLE '(' arglist ')' NEWLINE indentbody INDENT RETURN expr { yyerror("Missing ':' after function definition."); }
+        | DEF VARIABLE '(' arglist ')' NEWLINE indentbody INDENT RETURN      { yyerror("Missing ':' after function definition."); }
 
         ;
 
