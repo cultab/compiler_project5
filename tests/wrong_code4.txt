@@ -1,0 +1,3 @@
+del(if)
+len (3)
+print(del)
