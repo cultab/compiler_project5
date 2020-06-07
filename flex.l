@@ -31,6 +31,7 @@ void print(const char *s);
 
 /* easy print with line count */
 extern void yyerror(const char *restrict format, ...);
+extern void yywarn(const char *restrict format, ...);
 
 %}
 
@@ -76,8 +77,7 @@ UNKNOWN_TOKEN   .
 %%
 
 {BUILDIN} {
-        token_count++;
-        if(!strcmp(yytext,"len")) {
+                if(!strcmp(yytext,"len")) {
                 print("LEN");    
                 return LEN;
         } 
@@ -96,8 +96,7 @@ UNKNOWN_TOKEN   .
 }
 
 {KEYWORD} { 
-        token_count++;
-        if(!strcmp(yytext,"def")) {
+                if(!strcmp(yytext,"def")) {
                 print("DEF");    
                 return DEF;
         } 
@@ -128,8 +127,7 @@ UNKNOWN_TOKEN   .
 }
 
 {SPECIAL_WORD} { 
-        token_count++;
-        if(!strcmp(yytext,"(")) {
+                if(!strcmp(yytext,"(")) {
                 print("ATOM (");
                 return '(';
         }
@@ -229,8 +227,7 @@ UNKNOWN_TOKEN   .
 }
 
 {OPERATOR} { 
-        token_count++;
-        if (!strcmp(yytext,"+")) {  
+                if (!strcmp(yytext,"+")) {  
                 print("ATOM +"); 
                 return '+';
         }  
@@ -314,8 +311,7 @@ UNKNOWN_TOKEN   .
 }
 
 {VARIABLE} { 
-        token_count++;
-        print("VARIABLE"); 
+                print("VARIABLE"); 
         return VARIABLE;
 }
 
@@ -340,21 +336,20 @@ UNKNOWN_TOKEN   .
 
 <string_d>["] {
         BEGIN(INITIAL);  /* get out of state <string> */
-        token_count++;
-        print("STRING"); 
+                print("STRING"); 
         return STRING;
 }
 
-<string_d>["'] { yyerror("Error: Unescaped %c in string.", yytext[yyleng-1]); BEGIN(unknown); yymore(); }
-<string_d>[\r] { yyerror("Error: Unescaped \\r in string.", yytext[yyleng-1]); BEGIN(unknown); yymore(); }
-<string_d>[\n] { yyerror("Error: Unescaped \\n in string.", yytext[yyleng-1]); BEGIN(unknown); yymore(); }
-<string_d><<EOF>> { yyerror("Error: EOF reached while lexing string."); }
+<string_d>["'] { yyerror("Unescaped %c in string.", yytext[yyleng-1]); BEGIN(unknown); yymore(); }
+<string_d>[\r] { yyerror("Invalid character \\r in string.", yytext[yyleng-1]); BEGIN(unknown); yymore(); }
+<string_d>[\n] { yyerror("No terminating \" found.", yytext[yyleng-1]); BEGIN(unknown); yyless(yyleng-1); }
+<string_d><<EOF>> { yyerror("EOF reached while lexing string."); }
 
-<string_d>.     { yymore(); }
+<string_d>. { yymore(); }
 
 <string_d_esc>["'nr\\] { BEGIN(string_d); yymore(); }
 
-<string_d_esc>. { yyerror("Error: No such escape character like '\\%c'", yytext[yyleng-1]); BEGIN(unknown); yymore(); }
+<string_d_esc>. { yyerror("No such escape character like '\\%c' allowed in string.", yytext[yyleng-1]); BEGIN(unknown); yymore(); }
 
 {STRING_S}      { BEGIN(string_s); yymore(); }
 
@@ -362,34 +357,31 @@ UNKNOWN_TOKEN   .
 
 <string_s>['] {
         BEGIN(INITIAL);  /* get out of state <string> */
-        token_count++;
-        print("STRING");
+                print("STRING");
         return STRING;
 }
 
-<string_s>["'] { yyerror("Error: Unescaped %c in string.", yytext[yyleng-1]); BEGIN(unknown); yymore(); }
-<string_s>[\r] { yyerror("Error: Unescaped \\r in string.", yytext[yyleng-1]); BEGIN(unknown); yymore(); }
-<string_s>[\n] { yyerror("Error: Unescaped \\n in string.", yytext[yyleng-1]); BEGIN(unknown); yymore(); }
-<string_s><<EOF>> { yyerror("Error: EOF reached while lexing string."); }
+<string_s>["'] { yyerror("Unescaped %c in string.", yytext[yyleng-1]); BEGIN(unknown); yymore(); }
+<string_s>[\r] { yyerror("Invalid character \\r in string.", yytext[yyleng-1]); BEGIN(unknown); yymore(); }
+<string_s>[\n] { yyerror("No terminating ' found for string.", yytext[yyleng-1]); BEGIN(unknown); yyless(yyleng-1); }
+<string_s><<EOF>> { yyerror("EOF reached while lexing string."); }
 
 <string_s>.     { yymore(); }
 
 <string_s_esc>["'nr\\] { BEGIN(string_s); yymore(); }
 
-<string_s_esc>. { yyerror("Error: No such escape character like '\\%c'", yytext[yyleng-1]); BEGIN(unknown); yymore(); }
+<string_s_esc>. { yyerror("No such escape character like '\\%c' allowed in string", yytext[yyleng-1]); BEGIN(unknown); yymore(); }
+
 
 {INTCONST} { 
-        token_count++;
         print("INTCONST"); 
         return INTCONST;
 }
 {FLOATCONST} {
-        token_count++;
         print("FLOATCONST");
         return FLOATCONST; 
 }
 {IMAGCONST} { 
-        token_count++;
         print("IMAGCONST");
         return IMAGCONST; 
 }
@@ -413,23 +405,20 @@ UNKNOWN_TOKEN   .
 \n { 
         BEGIN(indent);
         line++; 
-        token_count++;
-        print("NEWLINE");
+                print("NEWLINE");
         return NEWLINE; 
 }
 
  /* indents are 8 spaces or a tab character */
 <indent>(\ ){8} {
         BEGIN(INITIAL);
-        token_count++;
-        print("INDENT");
+                print("INDENT");
         return INDENT;
 }
 
 <indent>[\t] {
         BEGIN(INITIAL);
-        token_count++;
-        print("INDENT");
+                print("INDENT");
         return INDENT;
 }
 
@@ -458,19 +447,20 @@ UNKNOWN_TOKEN   .
 
 {UNKNOWN_TOKEN} { BEGIN(unknown); yymore(); }
 
+<unknown>\n { 
+                yyless(yyleng-1);
+                token_error_count++;
+                yywarn("UNKNOWN TOKEN, value: %s", yytext);
+                BEGIN(INITIAL);
+                return UNKNOWN_TOKEN;
+                }
+
 <unknown>{DELIMITER} {
                 yyless(yyleng-1);
                 token_error_count++;
-                yyerror("Warning: UNKNOWN TOKEN, value: %s", yytext);
+                yywarn("UNKNOWN TOKEN, value: %s", yytext);
                 BEGIN(INITIAL);
-                }
-
-<unknown>[\n]   { 
-                yyless(yyleng-1);
-                token_error_count++;
-                yyerror("Warning: UNKNOWN TOKEN, value: %s", yytext);
-                line++;
-                BEGIN(INITIAL);
+                return UNKNOWN_TOKEN;
                 }
 
 <unknown>. { yymore(); }
@@ -480,6 +470,7 @@ UNKNOWN_TOKEN   .
 
 void print(const char *s)
 {
+        token_count++;
         fprintf(yyout, "\tFlex -> Found token: %s \n", s);
 }
 

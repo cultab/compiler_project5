@@ -55,6 +55,7 @@
 %nonassoc DSTAR DSLASH LSHIFT RSHIFT LSEQ GREQ EQUAL NOTEQUAL ARROW PLUSEQ MINUSEQ MULTEQ DIVEQ MODEQ DOTPRODEQ
 %nonassoc BITANDEQ BITOREQ BITXOREQ
 %nonassoc DSLASHEQ RSHIFTEQ LSHIFTEQ DSTAREQ
+%nonassoc UNKNOWN_TOKEN
 %%
 
    /* Orismos twn grammatikwn kanonwn. Kathe fora pou antistoixizetai enas grammatikos
@@ -64,7 +65,7 @@
     */
 program
         : program literal_line
-        | program error NEWLINE { yyerrok; yyclearin; } /* catch errors and resume after next NEWLINE */
+        | program error NEWLINE { yyclearin;  } /* catch errors and resume after next NEWLINE */
         |
         ;
 
@@ -169,22 +170,19 @@ while
 list
         : '[' content ']' { found("Literal List"); $$ = $2; }
         /* Contain errors in list declaration until closing bracket */
-        | '[' error ']'   { yyerror("in literal list declaration."); found("Literal List"); $$ = $2; }
-        | '[' content ')' { yywarn("Misspelled ']' for ')' in List"); found("Literal List"); $$ = $2; }
+        | '[' content ')' { yywarn("Misspelled ']' for ')' in literal list "); found("Literal List"); $$ = $2; }
         ;
 
 slice
         : VARIABLE '[' INTCONST ']'
         | VARIABLE '[' VARIABLE ']'
         /* Contain errors between brackets */
-        | VARIABLE '[' error ']' { yyerror("in array index."); }
         ;
 
 tuple
         : '(' content ')' { found("Literal Tuple"); $$ = $2; }
         /* Contain errors in tuple declaration until closing parenthesis */
-        | '(' error ')'   { yyerror("in literal tuple."); found("Literal Tuple"); $$ = $2; }
-        | '(' content ']'   { yywarn("Mispelled ')' for ']' in literal tuple."); found("Literal Tuple"); $$ = $2; }
+        | '(' content ']' { yywarn("Mispelled ')' for ']' in literal tuple."); found("Literal Tuple"); $$ = $2; }
         ;
 
 merge
@@ -214,10 +212,6 @@ builtin
         | PRINT '(' printable ')' { found("Print Function"); }
         | PRINT builtin           { found("Print Function"); }
         | comp_function
-        /* Contain errors between parenthesis */
-        | DEL '(' error ')'       { yyerror("in del() arguments."); found("Delete Function"); }
-        | LEN '(' error ')'       { yyerror("in len() arguments."); found("Length Function"); }
-        | PRINT '(' error ')'     { yyerror("in print() arguments."); found("Print Function"); }
         ;
 
 printable
@@ -230,8 +224,6 @@ printable
 
 func_call
         : VARIABLE '(' arglist ')'
-        /* Contain errors between parenthesis */
-        | VARIABLE '(' error ')' { yyerror("in function argument list."); }
         ;
 
 func
@@ -242,12 +234,9 @@ func
 userfunc
         : DEF VARIABLE '(' def_arglist ')' ':' NEWLINE indentbody INDENT RETURN expr
         | DEF VARIABLE '(' def_arglist ')' ':' NEWLINE indentbody INDENT RETURN
-        /* Contain error between parenthesis */
-        | DEF VARIABLE '(' error ')'   ':' NEWLINE indentbody INDENT RETURN expr { yyerror("in function definition argument list."); }
-        | DEF VARIABLE '(' error ')'   ':' NEWLINE indentbody INDENT RETURN      { yyerror("in function definition argument list."); }
         /* Print Warning for missing for missing : */
-        | DEF VARIABLE '(' def_arglist ')' NEWLINE indentbody INDENT RETURN expr     { yywarn("Missing ':' after function definition."); yynerrs++; }
-        | DEF VARIABLE '(' def_arglist ')' NEWLINE indentbody INDENT RETURN          { yywarn("Missing ':' after function definition."); yynerrs++; }
+        | DEF VARIABLE '(' def_arglist ')' NEWLINE indentbody INDENT RETURN expr { yywarn("Missing ':' after function definition."); yynerrs++; }
+        | DEF VARIABLE '(' def_arglist ')' NEWLINE indentbody INDENT RETURN      { yywarn("Missing ':' after function definition."); yynerrs++; }
         ;
 
 arglist
@@ -276,7 +265,7 @@ indentbody
 comp_function
         : CMP '(' list ',' list ')'   { 
                 if ( $3 != $5 ){ 
-                        yyerror("List length mismatch when comparing lists of length %d and %d\n",$3,$5);
+                        yyerror("cmp expects lists of equal lenght, got lengths of: %d and %d",$3,$5);
                         yynerrs++;
                 } 
                 found("Compare Function with Lists");
@@ -284,7 +273,7 @@ comp_function
         }
         | CMP '(' tuple ',' tuple ')' { 
                 if ( $3 != $5 ){
-                        yyerror("Tuple length mismatch when comparing tuples of length = %d and = %d\n",$3,$5); 
+                        yyerror("cmp expects tuples of equal length, got lengths of %d and %d",$3,$5); 
                         yynerrs++;
                 } 
                 $$ = 1;
@@ -297,17 +286,23 @@ comp_function
         | CMP '(' VARIABLE ',' list ')'     { found("Compare Function with Variable and List"); }
         | CMP '(' list ',' tuple ')'        { yyerror("Mismatch of argument types (CMP LIST AND TUPLE)"); yynerrs++; }
         | CMP '(' tuple ',' list ')'        { yyerror("Mismatch of argument types (CMP LIST AND TUPLE)"); yynerrs++; }
-        | CMP '(' error ')'                 { yyerror("in cmp() arguments."); found("Compare Function"); }
         ;
 
 %%
+
+        /* 
+         * yyerror and yywarn take a format string (like printf does)
+         * prepend the line number and 'error' or 'warning'
+         * color the text if yyout is pointing to a terminal
+         * and print the msg given to them formated correctly
+         */
 
 void yyerror(const char *restrict format, ...)
 {
         va_list vl;
 
         if (terminal)
-                fprintf(yyout, "\033[0;31m"); //color red
+                fprintf(yyout, "\033[1;31m"); //color red
         fprintf(yyout, "Line %d: error: ", line);
 
         va_start(vl, format);
@@ -323,7 +318,7 @@ void yywarn(const char *restrict format, ...)
         va_list vl;
 
         if (terminal)
-                fprintf(yyout, "\033[0;35m"); //color red
+                fprintf(yyout, "\033[1;35m"); //color magenta
         fprintf(yyout, "Line %d: warning: ", line);
 
         va_start(vl, format);
@@ -361,25 +356,29 @@ int main(int argc, char *argv[])
                 terminal = 0;
                 if(!(yyin = fopen(argv[1], "r"))) {
                         fprintf(stderr, "Cannot read file: %s\n", argv[1]);
-                        return 1;
+                        return 2;
                 }
                 if(!(yyout = fopen(argv[2], "w"))) {
                         fprintf(stderr, "Cannot create file: %s\n", argv[2]);
-                        return 1;
+                        return 2;
                 }
         }
         else if(argc == 2){
                 if(!(yyin = fopen(argv[1], "r"))) {
                         fprintf(stderr, "Cannot read file: %s\n", argv[1]);
-                        return 1;
+                        return 2;
                 }
         }
 
         yyparse();
 
         if (yynerrs == 0) {
+                if (terminal)
+                        fprintf(yyout, "\033[1;32m"); //color magenta
                 fprintf(yyout, "Parsing Succesful!\n");
         } else {
+                if (terminal)
+                        fprintf(yyout, "\033[1;31m"); //color magenta
                 fprintf(yyout, "Parsing Failed!\n");
         }
 
@@ -388,6 +387,8 @@ int main(int argc, char *argv[])
         fprintf(yyout, "Syntax errors %d\n",yynerrs);
         fprintf(yyout, "Expresions %d\n", counter);
         
+        if (terminal)
+                fprintf(yyout, "\033[0m"); //reset color
 
         return 0;
 }
