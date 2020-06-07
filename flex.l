@@ -334,55 +334,49 @@ UNKNOWN_TOKEN   .
   *
   */
 
-{STRING_D}      { BEGIN(string_d); yymore(); }
+{STRING_D}     { BEGIN(string_d); yymore(); }
 
-<string_d>[\\]  { BEGIN(string_d_esc); yymore(); }
+<string_d>[\\] { BEGIN(string_d_esc); yymore(); }
 
-<string_d>[\"]  {
+<string_d>["] {
         BEGIN(INITIAL);  /* get out of state <string> */
         token_count++;
         print("STRING"); 
         return STRING;
 }
 
-<string_d>["'\r]  { BEGIN(unknown); yymore(); }
-
-<string_d>[\n] { yyless(yyleng-1); BEGIN(unknown); }
-
-<string_d><<EOF>> {
-                yyerror("UNKNOWN TOKEN, value=\"%s\"", yytext);
-                }
+<string_d>["'] { yyerror("Error: Unescaped %c in string.", yytext[yyleng-1]); BEGIN(unknown); yymore(); }
+<string_d>[\r] { yyerror("Error: Unescaped \\r in string.", yytext[yyleng-1]); BEGIN(unknown); yymore(); }
+<string_d>[\n] { yyerror("Error: Unescaped \\n in string.", yytext[yyleng-1]); yyless(yyleng-1); BEGIN(unknown); }
+<string_d><<EOF>> { yyerror("Error: EOF reached while lexing string."); }
 
 <string_d>.     { yymore(); }
 
-<string_d_esc>[\"\'nr\\] { BEGIN(string_d); yymore(); }
+<string_d_esc>["'nr\\] { BEGIN(string_d); yymore(); }
 
-<string_d_esc>. { BEGIN(unknown); yymore(); }
+<string_d_esc>. { yyerror("Error: No such escape character like '\\%c'", yytext[yyleng-1]); BEGIN(unknown); yymore(); }
 
 {STRING_S}      { BEGIN(string_s); yymore(); }
 
 <string_s>[\\]  { BEGIN(string_s_esc); yymore(); }
 
-<string_s>[\'] {
+<string_s>['] {
         BEGIN(INITIAL);  /* get out of state <string> */
         token_count++;
         print("STRING");
         return STRING;
 }
 
-<string_s>["'\r]  { BEGIN(unknown); yymore(); }
-
-<string_s>[\n] { yyless(yyleng-1); BEGIN(unknown); }
-
-<string_s><<EOF>> {
-                yyerror("UNKNOWN TOKEN, value=\"%s\"", yytext);
-                }
+<string_s>["'] { yyerror("Error: Unescaped %c in string.", yytext[yyleng-1]); BEGIN(unknown); yymore(); }
+<string_s>[\r] { yyerror("Error: Unescaped \\r in string.", yytext[yyleng-1]); BEGIN(unknown); yymore(); }
+<string_s>[\n] { yyerror("Error: Unescaped \\n in string.", yytext[yyleng-1]); yyless(yyleng-1); BEGIN(unknown); }
+<string_s><<EOF>> { yyerror("Error: EOF reached while lexing string."); }
 
 <string_s>.     { yymore(); }
 
-<string_s_esc>[\"\'nr\\] { BEGIN(string_s); yymore(); }
+<string_s_esc>["'nr\\] { BEGIN(string_s); yymore(); }
 
-<string_s_esc>. { BEGIN(unknown); yymore(); }
+<string_s_esc>. { yyerror("Error: No such escape character like '\\%c'", yytext[yyleng-1]); BEGIN(unknown); yymore(); }
 
 {INTCONST} { 
         token_count++;
@@ -414,7 +408,7 @@ UNKNOWN_TOKEN   .
  /* if there is a character other than a newline after the slash it's an error
   * so we print an appropriate message and enter the appropriate state
   */
-<concat_line>. { yyerror("Expected newline after '\\', found: '%c'", yytext[yyleng-1]); BEGIN(unknown); }
+<concat_line>. { yyerror("Error: Expected newline after \\, found: %c", yytext[yyleng-1]); BEGIN(unknown); }
 
 \n { 
         BEGIN(indent);
@@ -467,14 +461,14 @@ UNKNOWN_TOKEN   .
 <unknown>{DELIMITER} {
                 yyless(yyleng-1);
                 token_error_count++;
-                yyerror("UNKNOWN TOKEN, value=\"%s\"", yytext);
+                yyerror("Warning: UNKNOWN TOKEN, value: %s", yytext);
                 BEGIN(INITIAL);
                 }
 
 <unknown>[\n]   { 
                 yyless(yyleng-1);
                 token_error_count++;
-                yyerror("UNKNOWN TOKEN, value=\"%s\"", yytext);
+                yyerror("Warning: UNKNOWN TOKEN, value: %s", yytext);
                 line++;
                 BEGIN(INITIAL);
                 }
