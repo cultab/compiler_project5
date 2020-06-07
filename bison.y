@@ -34,6 +34,9 @@
          */
         int counter = 0;
 
+        /* assume stdout is to a terminal emulator */
+        int terminal = 1;
+
         extern int line;
         extern int token_count;
         extern int token_error_count;
@@ -298,15 +301,34 @@ comp_function
 
 %%
 
-
 void yyerror(const char *restrict format, ...)
 {
         va_list vl;
 
-        fprintf(yyout, "Line %d: ", line);
+        if (terminal)
+                fprintf(yyout, "\033[0;31m"); //color red
+        fprintf(yyout, "Line %d: error: ", line);
 
         va_start(vl, format);
         vfprintf(yyout,format, vl);
+        if (terminal)
+                fprintf(yyout, "\033[0m"); //reset color
+        fprintf(yyout, "\n");
+        va_end(vl);
+}
+
+void yywarn(const char *restrict format, ...)
+{
+        va_list vl;
+
+        if (terminal)
+                fprintf(yyout, "\033[0;35m"); //color red
+        fprintf(yyout, "Line %d: warning: ", line);
+
+        va_start(vl, format);
+        vfprintf(yyout,format, vl);
+        if (terminal)
+                fprintf(yyout, "\033[0m"); //reset color
         fprintf(yyout, "\n");
         va_end(vl);
 }
@@ -334,6 +356,8 @@ int main(int argc, char *argv[])
 
 
         if(argc == 3){
+                /* stdout is a file so set terminal to 0 */
+                terminal = 0;
                 if(!(yyin = fopen(argv[1], "r"))) {
                         fprintf(stderr, "Cannot read file: %s\n", argv[1]);
                         return 1;
