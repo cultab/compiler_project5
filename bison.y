@@ -166,6 +166,7 @@ list
         : '[' content ']' { found("Literal List"); $$ = $2; }
         /* Contain errors in list declaration until closing bracket */
         | '[' error ']'   { yyerror("Error in literal list declaration."); found("Literal List"); $$ = $2; }
+        | '[' content ')'   { yyerror("Warning: THISList"); found("Literal List"); $$ = $2; }
         ;
 
 slice
@@ -179,6 +180,7 @@ tuple
         : '(' content ')' { found("Literal Tuple"); $$ = $2; }
         /* Contain errors in tuple declaration until closing parenthesis */
         | '(' error ')'   { yyerror("Error in literal tuple."); found("Literal Tuple"); $$ = $2; }
+        | '(' content ']'   { yyerror("Error inTHIS literal tuple."); found("Literal Tuple"); $$ = $2; }
         ;
 
 merge

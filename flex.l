@@ -347,7 +347,7 @@ UNKNOWN_TOKEN   .
 
 <string_d>["'] { yyerror("Error: Unescaped %c in string.", yytext[yyleng-1]); BEGIN(unknown); yymore(); }
 <string_d>[\r] { yyerror("Error: Unescaped \\r in string.", yytext[yyleng-1]); BEGIN(unknown); yymore(); }
-<string_d>[\n] { yyerror("Error: Unescaped \\n in string.", yytext[yyleng-1]); yyless(yyleng-1); BEGIN(unknown); }
+<string_d>[\n] { yyerror("Error: Unescaped \\n in string.", yytext[yyleng-1]); BEGIN(unknown); yymore(); }
 <string_d><<EOF>> { yyerror("Error: EOF reached while lexing string."); }
 
 <string_d>.     { yymore(); }
@@ -369,7 +369,7 @@ UNKNOWN_TOKEN   .
 
 <string_s>["'] { yyerror("Error: Unescaped %c in string.", yytext[yyleng-1]); BEGIN(unknown); yymore(); }
 <string_s>[\r] { yyerror("Error: Unescaped \\r in string.", yytext[yyleng-1]); BEGIN(unknown); yymore(); }
-<string_s>[\n] { yyerror("Error: Unescaped \\n in string.", yytext[yyleng-1]); yyless(yyleng-1); BEGIN(unknown); }
+<string_s>[\n] { yyerror("Error: Unescaped \\n in string.", yytext[yyleng-1]); BEGIN(unknown); yymore(); }
 <string_s><<EOF>> { yyerror("Error: EOF reached while lexing string."); }
 
 <string_s>.     { yymore(); }
