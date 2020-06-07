@@ -234,20 +234,26 @@ func
         ;
 
 userfunc
-        : DEF VARIABLE '(' arglist ')' ':' NEWLINE indentbody INDENT RETURN expr
-        | DEF VARIABLE '(' arglist ')' ':' NEWLINE indentbody INDENT RETURN
+        : DEF VARIABLE '(' def_arglist ')' ':' NEWLINE indentbody INDENT RETURN expr
+        | DEF VARIABLE '(' def_arglist ')' ':' NEWLINE indentbody INDENT RETURN
         /* Contain error between parenthesis */
         | DEF VARIABLE '(' error ')'   ':' NEWLINE indentbody INDENT RETURN expr { yyerror("Error in function definition argument list."); }
         | DEF VARIABLE '(' error ')'   ':' NEWLINE indentbody INDENT RETURN      { yyerror("Error in function definition argument list."); }
         /* Print Warning for missing for missing : */
-        | DEF VARIABLE '(' arglist ')' NEWLINE indentbody INDENT RETURN expr     { yyerror("Warning: Missing ':' after function definition."); yynerrs++; }
-        | DEF VARIABLE '(' arglist ')' NEWLINE indentbody INDENT RETURN          { yyerror("Warning: Missing ':' after function definition."); yynerrs++; }
+        | DEF VARIABLE '(' def_arglist ')' NEWLINE indentbody INDENT RETURN expr     { yyerror("Warning: Missing ':' after function definition."); yynerrs++; }
+        | DEF VARIABLE '(' def_arglist ')' NEWLINE indentbody INDENT RETURN          { yyerror("Warning: Missing ':' after function definition."); yynerrs++; }
         ;
 
 arglist
         : arglist ',' arg
         | arg
         | 
+        ;
+
+def_arglist
+        : def_arglist ',' VARIABLE
+        | VARIABLE
+        |
         ;
 
 arg
@@ -343,6 +349,12 @@ int main(int argc, char *argv[])
         }
 
         yyparse();
+
+        if (yynerrs == 0) {
+                fprintf(yyout, "Parsing Succesful!\n");
+        } else {
+                fprintf(yyout, "Parsin Failed!\n");
+        }
 
         fprintf(yyout, "Tokens %d\n", token_count);
         fprintf(yyout, "Token errors %d\n", token_error_count);
