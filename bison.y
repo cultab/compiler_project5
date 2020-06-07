@@ -172,7 +172,11 @@ slice
         : VARIABLE '[' INTCONST ']'
         | VARIABLE '[' VARIABLE ']'
         /* Contain errors between brackets */
-        | VARIABLE '[' error ']' { yyerror("Error in array index."); }
+        | VARIABLE '[' error ']' { yyerror("Error in list index."); }
+        | VARIABLE '(' INTCONST ')'
+        | VARIABLE '(' VARIABLE ')'
+        /* Contain errors between brackets */
+        | VARIABLE '(' error ')' { yyerror("Error in tuple index."); }
         ;
 
 tuple
