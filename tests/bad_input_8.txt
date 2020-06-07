@@ -1,6 +1,6 @@
 i = 1
 n = 6
-while i < n :
+while i < n 
         print(i)
         i += 1
 print("Finish my job')
