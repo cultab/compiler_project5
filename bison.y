@@ -24,6 +24,8 @@
         #include <stdarg.h>
         #include <string.h>
         #include <math.h>
+        #include <unistd.h>
+
         /* #define YYDEBUG 1 */
         int  yylex(void);
         void yyerror(const char *restrict format, ...);
@@ -36,7 +38,7 @@
         int counter = 0;
 
         /* assume stdout is to a terminal emulator */
-        int terminal = 1;
+        int terminal = 0;
 
         extern int line;
         extern int token_count;
@@ -187,9 +189,9 @@ tuple
 
 merge
         : list '+' list     { found("Merge of Lists"); $$ = $1 + $3; }
-        | list error list   { yywarn("'+' expected between when merging lists."); found("Merge of Lists"); $$ = $1 + $3; }
+        | list list   { yywarn("'+' expected between when merging lists."); found("Merge of Lists"); $$ = $1 + $2; }
         | tuple '+' tuple   { found("Merge of Tuples" ); $$ = $1 + $3; }
-        | tuple error tuple { yywarn("'+' expected between when merging tuples."); found("Merge of Tuples"); $$ = $1 + $3; }
+        | tuple tuple { yywarn("'+' expected between when merging tuples."); found("Merge of Tuples"); $$ = $1 + $2; }
         ;
 
 content
@@ -352,8 +354,6 @@ int main(int argc, char *argv[])
 
 
         if(argc == 3){
-                /* stdout is a file so set terminal to 0 */
-                terminal = 0;
                 if(!(yyin = fopen(argv[1], "r"))) {
                         fprintf(stderr, "Cannot read file: %s\n", argv[1]);
                         return 2;
@@ -368,6 +368,12 @@ int main(int argc, char *argv[])
                         fprintf(stderr, "Cannot read file: %s\n", argv[1]);
                         return 2;
                 }
+        }
+
+        if (isatty(fileno(stdout))) {
+                terminal = 1;
+        } else {
+                terminal = 0;
         }
 
         yyparse();

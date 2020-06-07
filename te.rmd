@@ -4,17 +4,1015 @@ titlepage: true
 logo: img/logo.jpg
 logo-width: 200
 titlepage-rule-color: "123c64"
-author: 171014 Ευάγγελος Κατσανδρής
+author: |
+    | ΜΕΤ1: Ομάδα 8
+    | Ασημάκης Αργυρόπουλος (cs131118@uniwa.gr)
+    | Ευάγγελος Κατσανδρής (cs171014@uniwa.gr)
+    | Κωσταντίνος Γκούσαρης (cs171073@uniwa.gr)
+    |
 output: 
     pdf_document:
         template: eisvogel
         latex_engine: xelatex
         number_sections: true
         toc: true
-        pandoc_args: ["--highlight-style", "tango"]
+        pandoc_args: ["--highlight-style", "tango", "--toc-depth=4"]
 header-includes:
 caption-justification: centering
 toc-own-page: true
 toc-title: Περιεχόμενα
 fontsize: 10pt
 ---
+
+# Εξαντλιτικές Δοκιμές
+
+Παρακάτω θα βρείτε σχολιασμό για τον κώδικα που βρήσκεται στα αρχεία του φακέλου
+'tests' στη μορφή:
+
+1. Όνομα Αρχείου
+2. Σχολιασμός
+3. Κώδικας
+4. Έξοδος
+
+Σημείωση:
+Οι δοκιμές 0 έως 7 είχαν χρησιμοποιηθεί στο προηγούμενο μέρος της εργασίας και
+παραθέτονται για να δείξουν ότι ο λεκτικός και ο συντακτικός αναλυτής ακόμα δουλεύουν
+όπως θα θέλαμε.
+
+## Δοκιμαστικά Τρεξίματα
+
+### bad_input_0.txt
+
+```python
+if condindition # missing :
+    do_the_thing()
+```
+
+```default
+	Flex -> Found token: IF 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: COMMENT 
+	Flex -> Found token: NEWLINE 
+	Flex -> Found token: VARIABLE 
+Line 2: error: syntax error
+	Flex -> Found token: ATOM ( 
+	Flex -> Found token: ATOM ) 
+	Flex -> Found token: NEWLINE 
+#END-OF-FILE#
+Parsing Failed!
+Tokens 8
+Token errors 0
+Syntax errors 1
+Expresions 0
+```
+
+\newpage
+
+### bad_input_1.txt
+
+```python
+number = 5 *= 3 # multiply and assign is an assignment, not an expression
+```
+
+```default
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM = 
+	Flex -> Found token: INTCONST 
+	Flex -> Found token: MULTEQ 
+		Parser -> Found(0): Assingment from expr
+Line 1: error: syntax error
+	Flex -> Found token: INTCONST 
+	Flex -> Found token: COMMENT 
+	Flex -> Found token: NEWLINE 
+#END-OF-FILE#
+Parsing Failed!
+Tokens 7
+Token errors 0
+Syntax errors 1
+Expresions 1
+```
+
+### bad_input_2.txt
+
+```python
+if a < b & c > a \& d > a: # lexer will expect a newline after the \
+    things()
+```
+
+```default
+	Flex -> Found token: IF 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM < 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM & 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM > 
+	Flex -> Found token: VARIABLE 
+Line 1: error: Error: Expected newline after \, found: &
+Line 1: warning: UNKNOWN TOKEN, value: 
+		Parser -> Found(0): Greater Than expr
+		Parser -> Found(1): Bitwise And expr
+		Parser -> Found(2): Less Than expr
+Line 1: error: syntax error
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM > 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM : 
+	Flex -> Found token: COMMENT 
+	Flex -> Found token: NEWLINE 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM ( 
+	Flex -> Found token: ATOM ) 
+		Parser -> Found(3): Function Call
+	Flex -> Found token: NEWLINE 
+		Parser -> Found(4): Line
+#END-OF-FILE#
+Parsing Failed!
+Tokens 18
+Token errors 1
+Syntax errors 1
+Expresions 5
+```
+
+### bad_input_3.txt
+
+```python
+a + 5 # not valid python
+```
+
+```default
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM + 
+Line 1: error: syntax error
+	Flex -> Found token: INTCONST 
+	Flex -> Found token: COMMENT 
+	Flex -> Found token: NEWLINE 
+#END-OF-FILE#
+Parsing Failed!
+Tokens 5
+Token errors 0
+Syntax errors 1
+Expresions 0
+```
+
+### bad_input_4.txt
+
+```python
+a = cmp([a,b],[a,b,c])
+```
+
+```default
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM = 
+	Flex -> Found token: CMP 
+	Flex -> Found token: ATOM ( 
+	Flex -> Found token: ATOM [ 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM , 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM ] 
+		Parser -> Found(0): Literal List
+	Flex -> Found token: ATOM , 
+	Flex -> Found token: ATOM [ 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM , 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM , 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM ] 
+		Parser -> Found(1): Literal List
+	Flex -> Found token: ATOM ) 
+Line 1: error: cmp expects lists of equal lenght, got lengths of: 2 and 3
+		Parser -> Found(2): Compare Function with Lists
+	Flex -> Found token: NEWLINE 
+		Parser -> Found(3): Assingment from expr
+		Parser -> Found(4): Line
+#END-OF-FILE#
+Parsing Failed!
+Tokens 19
+Token errors 0
+Syntax errors 1
+Expresions 5
+```
+
+### bad_input_5.txt
+
+```python
+a = cmp(("tuple"),("now with","two strings"))
+```
+
+```default
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM = 
+	Flex -> Found token: CMP 
+	Flex -> Found token: ATOM ( 
+	Flex -> Found token: ATOM ( 
+	Flex -> Found token: STRING 
+	Flex -> Found token: ATOM ) 
+		Parser -> Found(0): Literal Tuple
+	Flex -> Found token: ATOM , 
+	Flex -> Found token: ATOM ( 
+	Flex -> Found token: STRING 
+	Flex -> Found token: ATOM , 
+	Flex -> Found token: STRING 
+	Flex -> Found token: ATOM ) 
+		Parser -> Found(1): Literal Tuple
+	Flex -> Found token: ATOM ) 
+Line 1: error: cmp expects tuples of equal length, got lengths of 1 and 2
+		Parser -> Found(2): Compare Function with Tuples
+	Flex -> Found token: NEWLINE 
+		Parser -> Found(3): Assingment from expr
+		Parser -> Found(4): Line
+#END-OF-FILE#
+Parsing Failed!
+Tokens 15
+Token errors 0
+Syntax errors 1
+Expresions 5
+```
+
+### bad_input_6.txt
+
+```python
+def a_function(with, args):
+but_not_indented()
+Whoops()
+```
+
+```default
+	Flex -> Found token: DEF 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM ( 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM , 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM ) 
+	Flex -> Found token: ATOM : 
+	Flex -> Found token: NEWLINE 
+	Flex -> Found token: VARIABLE 
+Line 2: error: syntax error
+	Flex -> Found token: ATOM ( 
+	Flex -> Found token: ATOM ) 
+	Flex -> Found token: NEWLINE 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM ( 
+	Flex -> Found token: ATOM ) 
+		Parser -> Found(0): Function Call
+	Flex -> Found token: NEWLINE 
+		Parser -> Found(1): Line
+#END-OF-FILE#
+Parsing Failed!
+Tokens 17
+Token errors 0
+Syntax errors 1
+Expresions 2
+```
+
+### bad_input_7.txt
+
+```python
+a = $25 + 25
+```
+
+```default
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM = 
+Line 1: warning: UNKNOWN TOKEN, value: $25
+Line 1: error: syntax error
+	Flex -> Found token: ATOM + 
+	Flex -> Found token: INTCONST 
+	Flex -> Found token: NEWLINE 
+#END-OF-FILE#
+Parsing Failed!
+Tokens 5
+Token errors 1
+Syntax errors 1
+Expresions 0
+```
+
+### Νέες Δοκιμές
+
+### bad_input_8.txt
+
+Το μπλοκ αποτελειται από 6 γραμμές κωδίκα ο οποίος περιέχει συντακτικά και λεκτικά
+λάθη τα οποία ορθά αναγνωρίζονται από την συνεργασία των δύο αναλυτών. Πιο συγκεκριμένα
+στην γραμμή 3 δεν περιέχεται ο χαρακτήρας ':' που αποτελεί μέλος του κανόνα της while
+και ο συντακτικος αναλυτής αναγνωρίζει ορθά την μη τοποθέτηση του και προειδοποιεί
+τον χρήστη με warning. Περιέχει επίσης ένα λεκτικό λάθος, τη μη αναγνωρησή σωστου
+token που πρέπει να περιέχει ο κανόνας της print μέσα στις παρενθέσεις.
+
+```python
+i = 1
+n = 6
+while i < n 
+        print(i)
+        i += 1
+print("Finish my job')
+```
+
+```default
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM = 
+	Flex -> Found token: INTCONST 
+	Flex -> Found token: NEWLINE 
+		Parser -> Found(0): Assingment from expr
+		Parser -> Found(1): Line
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM = 
+	Flex -> Found token: INTCONST 
+	Flex -> Found token: NEWLINE 
+		Parser -> Found(2): Assingment from expr
+		Parser -> Found(3): Line
+	Flex -> Found token: WHILE 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM < 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: NEWLINE 
+		Parser -> Found(4): Less Than expr
+	Flex -> Found token: INDENT 
+	Flex -> Found token: PRINT 
+	Flex -> Found token: ATOM ( 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM ) 
+		Parser -> Found(5): Print Function
+	Flex -> Found token: NEWLINE 
+		Parser -> Found(6): Line
+	Flex -> Found token: INDENT 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: PLUSEQ 
+	Flex -> Found token: INTCONST 
+	Flex -> Found token: NEWLINE 
+		Parser -> Found(7): Equal Addition expr
+		Parser -> Found(8): Line
+	Flex -> Found token: PRINT 
+		Parser -> Found(9): While loop
+Line 6: warning: Missing ':' after while condition.
+		Parser -> Found(10): Line
+	Flex -> Found token: ATOM ( 
+Line 6: error: Unescaped ' in string.
+Line 6: warning: UNKNOWN TOKEN, value: "Finish my job')
+Line 6: error: syntax error
+	Flex -> Found token: NEWLINE 
+#END-OF-FILE#
+Parsing Failed!
+Tokens 27
+Token errors 1
+Syntax errors 2
+Expresions 11
+```
+
+### bad_input_9.txt
+
+Το μπλοκ αποτελειταί απο 8 γραμμές κώδικα ο οποιος περιέχει συντακτικά και λεκτικά
+λάθη τα οποία ορθά να αναγνωρίζονται από την συνεργασία των δύο αναλυτών. Πιο συγκεκριμένα
+στην γραμμή 4 περιέχει ενα warning το οποίο ορθα εμφανζεται απο τον συντακτικό αναλυτή
+και προειδοποιεί για την παραληψη του χαρακτηρα ':' που αποτελεί μέρος της συνταξής του κανόνα. Στην
+συνέχεια εντοπίζει και καταγράφει σαν συντακτικό λάθος τις παρανθέσεις οι οποίες περικλείουν
+μία συνθηκή μετα το keyword 'if' και ενδεχομένως ένας χρηστή να συμπεριλάβει επιρεασμένος
+από άλλες γλώσσες προγραμματισμού.Και τέλος απο τον λεκτικό αναλυτή εντοπίζεται και
+καταγραφεταί σαν λεκτικό λάθος η μη αναγνώριση του token που περιέχεται μέσα στις
+παρενθέσεις του κανονά της print.
+
+```python
+name = "nikos"
+age = 18
+
+if age < 18 
+        print("You can drive!")
+
+if (age>18) :
+        print("You can\'t drive!')
+```
+
+```default
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM = 
+	Flex -> Found token: STRING 
+	Flex -> Found token: NEWLINE 
+		Parser -> Found(0): Assingment from expr
+		Parser -> Found(1): Line
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM = 
+	Flex -> Found token: INTCONST 
+	Flex -> Found token: NEWLINE 
+		Parser -> Found(2): Assingment from expr
+		Parser -> Found(3): Line
+	Flex -> Found token: NEWLINE 
+		Parser -> Found(4): Empty Line
+	Flex -> Found token: IF 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM < 
+	Flex -> Found token: INTCONST 
+	Flex -> Found token: NEWLINE 
+		Parser -> Found(5): Less Than expr
+	Flex -> Found token: INDENT 
+	Flex -> Found token: PRINT 
+	Flex -> Found token: ATOM ( 
+	Flex -> Found token: STRING 
+	Flex -> Found token: ATOM ) 
+		Parser -> Found(6): Print Function
+	Flex -> Found token: NEWLINE 
+		Parser -> Found(7): Line
+	Flex -> Found token: NEWLINE 
+		Parser -> Found(8): If statement
+Line 7: warning: Missing ':' after if condition.
+		Parser -> Found(9): Line
+		Parser -> Found(10): Empty Line
+	Flex -> Found token: IF 
+	Flex -> Found token: ATOM ( 
+Line 7: error: syntax error
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM > 
+	Flex -> Found token: INTCONST 
+	Flex -> Found token: ATOM ) 
+	Flex -> Found token: ATOM : 
+	Flex -> Found token: NEWLINE 
+	Flex -> Found token: INDENT 
+	Flex -> Found token: PRINT 
+	Flex -> Found token: ATOM ( 
+Line 8: error: Unescaped ' in string.
+Line 8: warning: UNKNOWN TOKEN, value: "You can\'t drive!')
+	Flex -> Found token: NEWLINE 
+#END-OF-FILE#
+Parsing Failed!
+Tokens 33
+Token errors 1
+Syntax errors 2
+Expresions 11
+```
+
+### bad_input_10.txt
+
+Το μπλοκ αποτελείται από 4 γραμμές κώδικα ο οποίος περίεχει συντακτικά και λεκτικά λάθη
+τα οποία εντοπίζονται από την συνεργάσια των δύο αναλυτών. Πιο συγκεκριμένα στην γραμμή
+1 περιέχει ένα warning το οποίο αφορά λανθασμένη χρήση της σύνταξης της λίστας, πως πρέπει
+να αρχίζει και πως τελειώνει. Ομοίως στην γραμμή δύο, ο συντακτικός αναλυτής εμφανίζει
+αντιστοιχό warning για την λανθασμένη συνταξή μιας tuple. Τελος εμφανιζεί λεκτικό λαθος
+εξαιτίας του μη ορθού token το οποίο ειναι μέλος της print και ταυτόχρονα η αναγνωρισή
+του από τον συντακτικό αναλυτή σαν error.
+
+```python
+x = [12,23,43)
+y = (34,12,43]
+print("y)
+print(x)
+len(x)
+```
+
+```default
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM = 
+	Flex -> Found token: ATOM [ 
+	Flex -> Found token: INTCONST 
+	Flex -> Found token: ATOM , 
+	Flex -> Found token: INTCONST 
+	Flex -> Found token: ATOM , 
+	Flex -> Found token: INTCONST 
+	Flex -> Found token: ATOM ) 
+Line 1: warning: Misspelled ']' for ')' in literal list 
+		Parser -> Found(0): Literal List
+	Flex -> Found token: NEWLINE 
+		Parser -> Found(1): Assingment from list
+		Parser -> Found(2): Line
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM = 
+	Flex -> Found token: ATOM ( 
+	Flex -> Found token: INTCONST 
+	Flex -> Found token: ATOM , 
+	Flex -> Found token: INTCONST 
+	Flex -> Found token: ATOM , 
+	Flex -> Found token: INTCONST 
+	Flex -> Found token: ATOM ] 
+Line 2: warning: Mispelled ')' for ']' in literal tuple.
+		Parser -> Found(3): Literal Tuple
+	Flex -> Found token: NEWLINE 
+		Parser -> Found(4): Assingment from tuple
+		Parser -> Found(5): Line
+	Flex -> Found token: PRINT 
+	Flex -> Found token: ATOM ( 
+Line 3: error: No terminating " found.
+Line 3: warning: UNKNOWN TOKEN, value: 
+Line 3: error: syntax error
+	Flex -> Found token: NEWLINE 
+	Flex -> Found token: PRINT 
+	Flex -> Found token: ATOM ( 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM ) 
+		Parser -> Found(6): Print Function
+	Flex -> Found token: NEWLINE 
+		Parser -> Found(7): Line
+	Flex -> Found token: LEN 
+	Flex -> Found token: ATOM ( 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM ) 
+		Parser -> Found(8): Length Function
+	Flex -> Found token: NEWLINE 
+		Parser -> Found(9): Line
+#END-OF-FILE#
+Parsing Failed!
+Tokens 33
+Token errors 1
+Syntax errors 1
+Expresions 10
+```
+
+### flex_1.py
+
+Το μπλοκ αποτελείται από κλήσης της συνάρτησης print με κάποια συμβολοσειρά η
+οποία έχει κάποιο λάθος και μια απλή ανάθεση ώστε να φανεί ότι το λάθος περιορίζεται
+στην γραμμή που έγινε.
+
+Το αποτέλεσμα είναι αυτό που περιμένουμε ώστε στις γραμμές να βρεθούν τα ακόλουθα
+λάθη:
+
+1. Unescaped single quote σε συμβολοσειρά.
+3. Unescaped double quote σε συμβολοσειρά.
+5. Newline σε συμβολοσειρά.
+8. Carriage Return σε συμβολοσειρά.
+10. Τέλος αρχείου πριν το κλείσιμο της συμβολοσειράς.
+ 
+
+```python
+print("You can't print this")
+a = 'ok'
+print("same "here"")
+b = 'ok'
+print("this breaks
+      too ")
+c = 'ok'
+print("carriage returns also not allowed ")
+d = 'ok'
+print("getting to the end of the file is also a big no-no
+```
+
+```default
+	Flex -> Found token: PRINT 
+	Flex -> Found token: ATOM ( 
+Line 1: error: Unescaped ' in string.
+Line 1: warning: UNKNOWN TOKEN, value: "You can't
+Line 1: error: syntax error
+	Flex -> Found token: PRINT 
+	Flex -> Found token: VARIABLE 
+Line 1: error: No terminating " found.
+Line 1: warning: UNKNOWN TOKEN, value: 
+	Flex -> Found token: NEWLINE 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM = 
+	Flex -> Found token: STRING 
+	Flex -> Found token: NEWLINE 
+		Parser -> Found(0): Assingment from expr
+		Parser -> Found(1): Line
+	Flex -> Found token: PRINT 
+	Flex -> Found token: ATOM ( 
+	Flex -> Found token: STRING 
+	Flex -> Found token: VARIABLE 
+Line 3: error: syntax error
+	Flex -> Found token: STRING 
+	Flex -> Found token: ATOM ) 
+	Flex -> Found token: NEWLINE 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM = 
+	Flex -> Found token: STRING 
+	Flex -> Found token: NEWLINE 
+		Parser -> Found(2): Assingment from expr
+		Parser -> Found(3): Line
+	Flex -> Found token: PRINT 
+	Flex -> Found token: ATOM ( 
+Line 5: error: No terminating " found.
+Line 5: warning: UNKNOWN TOKEN, value: 
+Line 5: error: syntax error
+	Flex -> Found token: NEWLINE 
+	Flex -> Found token: VARIABLE 
+Line 6: error: No terminating " found.
+Line 6: warning: UNKNOWN TOKEN, value: 
+	Flex -> Found token: NEWLINE 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM = 
+	Flex -> Found token: STRING 
+	Flex -> Found token: NEWLINE 
+		Parser -> Found(4): Assingment from expr
+		Parser -> Found(5): Line
+	Flex -> Found token: PRINT 
+	Flex -> Found token: ATOM ( 
+Line 8: error: Invalid character \r in string.
+Line 8: warning: UNKNOWN TOKEN, value: "carriage returns also not allowed ")
+Line 8: error: syntax error
+	Flex -> Found token: NEWLINE 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM = 
+	Flex -> Found token: STRING 
+	Flex -> Found token: NEWLINE 
+		Parser -> Found(6): Assingment from expr
+		Parser -> Found(7): Line
+	Flex -> Found token: PRINT 
+	Flex -> Found token: ATOM ( 
+Line 10: error: No terminating " found.
+Line 10: warning: UNKNOWN TOKEN, value: 
+Line 10: error: syntax error
+	Flex -> Found token: NEWLINE 
+#END-OF-FILE#
+Parsing Failed!
+Tokens 39
+Token errors 6
+Syntax errors 5
+Expresions 8
+```
+
+### flex_2.py
+
+Ο λεκτικός αναλυτής σωστά αναγνωρίζει ότι ο χαρακτήρας \ πρέπει να ακολουθείτε
+από NEWLINE και είναι λάθος να ακολουθείτε από άλλο χαρακτήρα.
+
+```python
+if a < 5 & a > 0 \a == 2:
+    something()
+```
+
+```default
+	Flex -> Found token: IF 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM < 
+	Flex -> Found token: INTCONST 
+	Flex -> Found token: ATOM & 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM > 
+	Flex -> Found token: INTCONST 
+Line 1: error: Error: Expected newline after \, found: a
+Line 1: warning: UNKNOWN TOKEN, value: 
+		Parser -> Found(0): Greater Than expr
+		Parser -> Found(1): Bitwise And expr
+		Parser -> Found(2): Less Than expr
+Line 1: error: syntax error
+	Flex -> Found token: EQUAL 
+	Flex -> Found token: INTCONST 
+	Flex -> Found token: ATOM : 
+	Flex -> Found token: NEWLINE 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM ( 
+	Flex -> Found token: ATOM ) 
+		Parser -> Found(3): Function Call
+	Flex -> Found token: NEWLINE 
+		Parser -> Found(4): Line
+#END-OF-FILE#
+Parsing Failed!
+Tokens 16
+Token errors 1
+Syntax errors 1
+Expresions 5
+```
+
+### wrong_code.txt
+
+```python
+def asd (print):
+        a = 2
+        return a
+
+asd(print)
+
+def asd(a)
+        a = 2
+        return a
+
+asd(a)
+```
+
+```default
+	Flex -> Found token: DEF 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM ( 
+	Flex -> Found token: PRINT 
+Line 1: error: syntax error
+	Flex -> Found token: ATOM ) 
+	Flex -> Found token: ATOM : 
+	Flex -> Found token: NEWLINE 
+	Flex -> Found token: INDENT 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM = 
+	Flex -> Found token: INTCONST 
+	Flex -> Found token: NEWLINE 
+	Flex -> Found token: INDENT 
+	Flex -> Found token: RETURN 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: NEWLINE 
+	Flex -> Found token: NEWLINE 
+		Parser -> Found(0): Empty Line
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM ( 
+	Flex -> Found token: PRINT 
+	Flex -> Found token: ATOM ) 
+Line 5: error: syntax error
+	Flex -> Found token: NEWLINE 
+	Flex -> Found token: NEWLINE 
+		Parser -> Found(1): Empty Line
+	Flex -> Found token: DEF 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM ( 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM ) 
+	Flex -> Found token: NEWLINE 
+	Flex -> Found token: INDENT 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM = 
+	Flex -> Found token: INTCONST 
+	Flex -> Found token: NEWLINE 
+		Parser -> Found(2): Assingment from expr
+		Parser -> Found(3): Line
+	Flex -> Found token: INDENT 
+	Flex -> Found token: RETURN 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: NEWLINE 
+Line 10: warning: Missing ':' after function definition.
+		Parser -> Found(4): Function Defintion
+		Parser -> Found(5): Line
+	Flex -> Found token: NEWLINE 
+		Parser -> Found(6): Empty Line
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM ( 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM ) 
+		Parser -> Found(7): Function Call
+	Flex -> Found token: NEWLINE 
+		Parser -> Found(8): Line
+#END-OF-FILE#
+Parsing Failed!
+Tokens 44
+Token errors 0
+Syntax errors 3
+Expresions 9
+```
+
+### wrong_code1.txt
+
+```python
+if i<4
+        as = 2
+        as = as + 1
+while i > 5
+        as = as -1
+        i = i-1
+```
+
+```default
+	Flex -> Found token: IF 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM < 
+	Flex -> Found token: INTCONST 
+	Flex -> Found token: NEWLINE 
+		Parser -> Found(0): Less Than expr
+	Flex -> Found token: INDENT 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM = 
+	Flex -> Found token: INTCONST 
+	Flex -> Found token: NEWLINE 
+		Parser -> Found(1): Assingment from expr
+		Parser -> Found(2): Line
+	Flex -> Found token: INDENT 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM = 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM + 
+	Flex -> Found token: INTCONST 
+	Flex -> Found token: NEWLINE 
+		Parser -> Found(3): Addition expr
+		Parser -> Found(4): Assingment from expr
+		Parser -> Found(5): Line
+	Flex -> Found token: WHILE 
+		Parser -> Found(6): If statement
+Line 4: warning: Missing ':' after if condition.
+		Parser -> Found(7): Line
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM > 
+	Flex -> Found token: INTCONST 
+	Flex -> Found token: NEWLINE 
+		Parser -> Found(8): Greater Than expr
+	Flex -> Found token: INDENT 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM = 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM - 
+	Flex -> Found token: INTCONST 
+	Flex -> Found token: NEWLINE 
+		Parser -> Found(9): Subtraction expr
+		Parser -> Found(10): Assingment from expr
+		Parser -> Found(11): Line
+	Flex -> Found token: INDENT 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM = 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM - 
+	Flex -> Found token: INTCONST 
+	Flex -> Found token: NEWLINE 
+		Parser -> Found(12): Subtraction expr
+		Parser -> Found(13): Assingment from expr
+		Parser -> Found(14): Line
+#END-OF-FILE#
+		Parser -> Found(15): While loop
+Line 7: warning: Missing ':' after while condition.
+		Parser -> Found(16): Line
+Parsing Failed!
+Tokens 36
+Token errors 0
+Syntax errors 2
+Expresions 17
+```
+
+### wrong_code2.txt
+
+```python
+a = [print(i)]
+a = (print(i))
+a = [as]
+a[if]
+a = (as)
+a(if)
+```
+
+```default
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM = 
+	Flex -> Found token: ATOM [ 
+	Flex -> Found token: PRINT 
+	Flex -> Found token: ATOM ( 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM ) 
+		Parser -> Found(0): Print Function
+	Flex -> Found token: ATOM ] 
+		Parser -> Found(1): Literal List
+	Flex -> Found token: NEWLINE 
+		Parser -> Found(2): Assingment from list
+		Parser -> Found(3): Line
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM = 
+	Flex -> Found token: ATOM ( 
+	Flex -> Found token: PRINT 
+	Flex -> Found token: ATOM ( 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM ) 
+		Parser -> Found(4): Print Function
+	Flex -> Found token: ATOM ) 
+		Parser -> Found(5): Literal Tuple
+	Flex -> Found token: NEWLINE 
+		Parser -> Found(6): Assingment from tuple
+		Parser -> Found(7): Line
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM = 
+	Flex -> Found token: ATOM [ 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM ] 
+		Parser -> Found(8): Literal List
+	Flex -> Found token: NEWLINE 
+		Parser -> Found(9): Assingment from list
+		Parser -> Found(10): Line
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM [ 
+	Flex -> Found token: IF 
+Line 4: error: syntax error
+	Flex -> Found token: ATOM ] 
+	Flex -> Found token: NEWLINE 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM = 
+	Flex -> Found token: ATOM ( 
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM ) 
+		Parser -> Found(11): Literal Tuple
+	Flex -> Found token: NEWLINE 
+		Parser -> Found(12): Assingment from tuple
+		Parser -> Found(13): Line
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM ( 
+	Flex -> Found token: IF 
+Line 6: error: syntax error
+	Flex -> Found token: ATOM ) 
+	Flex -> Found token: NEWLINE 
+#END-OF-FILE#
+Parsing Failed!
+Tokens 40
+Token errors 0
+Syntax errors 2
+Expresions 14
+```
+
+### wrong_code3.txt
+
+```python
+b = [] [1,2]
+b = [] 2 [1,2]
+b = () (1,2)
+b = () 2 (1,2)
+```
+
+```default
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM = 
+	Flex -> Found token: ATOM [ 
+	Flex -> Found token: ATOM ] 
+		Parser -> Found(0): Literal List
+	Flex -> Found token: ATOM [ 
+Line 1: error: syntax error
+	Flex -> Found token: INTCONST 
+	Flex -> Found token: ATOM , 
+	Flex -> Found token: INTCONST 
+	Flex -> Found token: ATOM ] 
+		Parser -> Found(1): Literal List
+Line 1: warning: '+' expected between when merging lists.
+		Parser -> Found(2): Merge of Lists
+		Parser -> Found(3): Assingment from merge
+	Flex -> Found token: NEWLINE 
+		Parser -> Found(4): Line
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM = 
+	Flex -> Found token: ATOM [ 
+	Flex -> Found token: ATOM ] 
+		Parser -> Found(5): Literal List
+	Flex -> Found token: INTCONST 
+Line 2: error: syntax error
+	Flex -> Found token: ATOM [ 
+	Flex -> Found token: INTCONST 
+	Flex -> Found token: ATOM , 
+	Flex -> Found token: INTCONST 
+	Flex -> Found token: ATOM ] 
+		Parser -> Found(6): Literal List
+Line 2: warning: '+' expected between when merging lists.
+		Parser -> Found(7): Merge of Lists
+		Parser -> Found(8): Assingment from merge
+	Flex -> Found token: NEWLINE 
+		Parser -> Found(9): Line
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM = 
+	Flex -> Found token: ATOM ( 
+	Flex -> Found token: ATOM ) 
+		Parser -> Found(10): Literal Tuple
+	Flex -> Found token: ATOM ( 
+Line 3: error: syntax error
+	Flex -> Found token: INTCONST 
+	Flex -> Found token: ATOM , 
+	Flex -> Found token: INTCONST 
+	Flex -> Found token: ATOM ) 
+		Parser -> Found(11): Literal Tuple
+Line 3: warning: '+' expected between when merging tuples.
+		Parser -> Found(12): Merge of Tuples
+		Parser -> Found(13): Assingment from merge
+	Flex -> Found token: NEWLINE 
+		Parser -> Found(14): Line
+	Flex -> Found token: VARIABLE 
+	Flex -> Found token: ATOM = 
+	Flex -> Found token: ATOM ( 
+	Flex -> Found token: ATOM ) 
+		Parser -> Found(15): Literal Tuple
+	Flex -> Found token: INTCONST 
+Line 4: error: syntax error
+	Flex -> Found token: ATOM ( 
+	Flex -> Found token: INTCONST 
+	Flex -> Found token: ATOM , 
+	Flex -> Found token: INTCONST 
+	Flex -> Found token: ATOM ) 
+		Parser -> Found(16): Literal Tuple
+Line 4: warning: '+' expected between when merging tuples.
+		Parser -> Found(17): Merge of Tuples
+		Parser -> Found(18): Assingment from merge
+	Flex -> Found token: NEWLINE 
+		Parser -> Found(19): Line
+#END-OF-FILE#
+Parsing Failed!
+Tokens 42
+Token errors 0
+Syntax errors 4
+Expresions 20
+```
+
+### wrong_code4.txt
+
+```python
+del(if)
+len (3)
+print(del)
+```
+
+```default
+	Flex -> Found token: DEL 
+	Flex -> Found token: ATOM ( 
+	Flex -> Found token: IF 
+Line 1: error: syntax error
+	Flex -> Found token: ATOM ) 
+	Flex -> Found token: NEWLINE 
+	Flex -> Found token: LEN 
+	Flex -> Found token: ATOM ( 
+	Flex -> Found token: INTCONST 
+Line 2: error: syntax error
+	Flex -> Found token: ATOM ) 
+	Flex -> Found token: NEWLINE 
+	Flex -> Found token: PRINT 
+	Flex -> Found token: ATOM ( 
+	Flex -> Found token: DEL 
+	Flex -> Found token: ATOM ) 
+Line 3: error: syntax error
+	Flex -> Found token: NEWLINE 
+#END-OF-FILE#
+Parsing Failed!
+Tokens 15
+Token errors 0
+Syntax errors 3
+Expresions 0
+```
+
