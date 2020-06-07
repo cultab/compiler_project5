@@ -27,6 +27,7 @@
         /* #define YYDEBUG 1 */
         int  yylex(void);
         void yyerror(const char *restrict format, ...);
+        void yywarn(const char *restrict format, ...);
         void found(const char *name);
 
         /* counter is used to keep a running count
@@ -169,7 +170,7 @@ list
         : '[' content ']' { found("Literal List"); $$ = $2; }
         /* Contain errors in list declaration until closing bracket */
         | '[' error ']'   { yyerror("in literal list declaration."); found("Literal List"); $$ = $2; }
-        | '[' content ')'   { yywarn("Misspelled ']' for ')' in List"); found("Literal List"); $$ = $2; }
+        | '[' content ')' { yywarn("Misspelled ']' for ')' in List"); found("Literal List"); $$ = $2; }
         ;
 
 slice
