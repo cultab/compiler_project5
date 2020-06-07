@@ -1,0 +1,6 @@
+a = [print(i)]
+a = (print(i))
+a = [as]
+a[if]
+a = (as)
+a(if)

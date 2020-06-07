@@ -1,0 +1,11 @@
+def asd (print):
+        a = 2
+        return a
+
+asd(print)
+
+def asd(a)
+        a = 2
+        return a
+
+asd(a)
