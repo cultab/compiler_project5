@@ -53,10 +53,11 @@
 %nonassoc DSLASHEQ RSHIFTEQ LSHIFTEQ DSTAREQ
 %%
 
-/* Orismos twn grammatikwn kanonwn. Kathe fora pou antistoixizetai enas grammatikos
-   kanonas me ta dedomena eisodou, ekteleitai o kwdikas C pou brisketai anamesa sta
-   agkistra. H anamenomenh syntaksh einai:
-                                onoma : kanonas { kwdikas C } */
+   /* Orismos twn grammatikwn kanonwn. Kathe fora pou antistoixizetai enas grammatikos
+    * kanonas me ta dedomena eisodou, ekteleitai o kwdikas C pou brisketai anamesa sta
+    * agkistra. H anamenomenh syntaksh einai:
+    *                           onoma : kanonas { kwdikas C }
+    */
 program
         : program literal_line
         | program error NEWLINE { yyerrok; yyclearin; } /* catch errors and resume after next NEWLINE */
@@ -149,16 +150,16 @@ if
         : IF expr ':' NEWLINE indentbody   { found("If statement"); }
         | IF expr ':' logic_line NEWLINE   { found("If statement"); found("Line"); }
         /* Print warning on missing : */
-        | IF expr NEWLINE indentbody       { found("If statement"); yyerror("Warning: Missing ':' after if condition."); }
-        | IF expr logic_line NEWLINE       { found("If statement"); found("Line"); yyerror("Warning: Missing ':' after if condition."); }
+        | IF expr NEWLINE indentbody       { found("If statement"); yyerror("Warning: Missing ':' after if condition."); yynerrs++; }
+        | IF expr logic_line NEWLINE       { found("If statement"); found("Line"); yyerror("Warning: Missing ':' after if condition."); yynerrs++; }
         ;
 
 while
         : WHILE expr ':' NEWLINE indentbody { found("While loop"); }
         | WHILE expr ':' logic_line NEWLINE { found("While loop"); found("Line"); }
         /* Print warning on missing : */
-        | WHILE expr NEWLINE indentbody     { found("While loop"); yyerror("Warning: Missing ':' after while condition."); }
-        | WHILE expr logic_line NEWLINE     { found("While loop"); found("Line"); yyerror("Warning: Missing ':' after while condition."); }
+        | WHILE expr NEWLINE indentbody     { found("While loop"); yyerror("Warning: Missing ':' after while condition."); yynerrs++; }
+        | WHILE expr logic_line NEWLINE     { found("While loop"); found("Line"); yyerror("Warning: Missing ':' after while condition."); yynerrs++; }
         ;
 
 list
@@ -184,7 +185,7 @@ merge
         : list '+' list     { found("Merge of Lists"); $$ = $1 + $3; }
         | list error list   { yyerror("Warning: '+' expected between when merging lists."); found("Merge of Lists"); $$ = $1 + $3; }
         | tuple '+' tuple   { found("Merge of Tuples" ); $$ = $1 + $3; }
-        | tuple error tuple { yyerror("Warning: '+' expected between when merging tuples."); found("Merge of Lists"); $$ = $1 + $3; }
+        | tuple error tuple { yyerror("Warning: '+' expected between when merging tuples."); found("Merge of Tuples"); $$ = $1 + $3; }
         ;
 
 content
@@ -239,8 +240,8 @@ userfunc
         | DEF VARIABLE '(' error ')'   ':' NEWLINE indentbody INDENT RETURN expr { yyerror("Error in function definition argument list."); }
         | DEF VARIABLE '(' error ')'   ':' NEWLINE indentbody INDENT RETURN      { yyerror("Error in function definition argument list."); }
         /* Print Warning for missing for missing : */
-        | DEF VARIABLE '(' arglist ')' NEWLINE indentbody INDENT RETURN expr     { yyerror("Warning: Missing ':' after function definition."); }
-        | DEF VARIABLE '(' arglist ')' NEWLINE indentbody INDENT RETURN          { yyerror("Warning: Missing ':' after function definition."); }
+        | DEF VARIABLE '(' arglist ')' NEWLINE indentbody INDENT RETURN expr     { yyerror("Warning: Missing ':' after function definition."); yynerrs++; }
+        | DEF VARIABLE '(' arglist ')' NEWLINE indentbody INDENT RETURN          { yyerror("Warning: Missing ':' after function definition."); yynerrs++; }
         ;
 
 arglist
@@ -263,7 +264,8 @@ indentbody
 comp_function
         : CMP '(' list ',' list ')'   { 
                 if ( $3 != $5 ){ 
-                        yyerror("Error: List length mismatch when comparing lists of length %d and %d\n",$3,$5); 
+                        yyerror("Error: List length mismatch when comparing lists of length %d and %d\n",$3,$5);
+                        yynerrs++;
                 } 
                 found("Compare Function with Lists");
                 $$ = 1; 
@@ -271,6 +273,7 @@ comp_function
         | CMP '(' tuple ',' tuple ')' { 
                 if ( $3 != $5 ){
                         yyerror("Error: Tuple length mismatch when comparing tuples of length = %d and = %d\n",$3,$5); 
+                        yynerrs++;
                 } 
                 $$ = 1;
                 found("Compare Function with Tuples");
@@ -280,8 +283,8 @@ comp_function
         | CMP '(' VARIABLE ',' tuple ')'    { found("Compare Function with Variable and Tuple"); }
         | CMP '(' list ',' VARIABLE ')'     { found("Compare Function with List and Variable"); }
         | CMP '(' VARIABLE ',' list ')'     { found("Compare Function with Variable and List"); }
-        | CMP '(' list ',' tuple ')'        { yyerror("Error: Mismatch of argument types (CMP LIST AND TUPLE)"); yynerrs++; } //Syntax error
-        | CMP '(' tuple ',' list ')'        { yyerror("Error: Mismatch of argument types (CMP LIST AND TUPLE)"); yynerrs++; } //Syntax error
+        | CMP '(' list ',' tuple ')'        { yyerror("Error: Mismatch of argument types (CMP LIST AND TUPLE)"); yynerrs++; }
+        | CMP '(' tuple ',' list ')'        { yyerror("Error: Mismatch of argument types (CMP LIST AND TUPLE)"); yynerrs++; }
         | CMP '(' error ')'                 { yyerror("Error in cmp() arguments."); found("Compare Function"); }
         ;
 
