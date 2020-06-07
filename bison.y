@@ -357,7 +357,7 @@ int main(int argc, char *argv[])
         if (yynerrs == 0) {
                 fprintf(yyout, "Parsing Succesful!\n");
         } else {
-                fprintf(yyout, "Parsin Failed!\n");
+                fprintf(yyout, "Parsing Failed!\n");
         }
 
         fprintf(yyout, "Tokens %d\n", token_count);
