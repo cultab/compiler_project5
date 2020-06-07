@@ -150,44 +150,44 @@ if
         : IF expr ':' NEWLINE indentbody   { found("If statement"); }
         | IF expr ':' logic_line NEWLINE   { found("If statement"); found("Line"); }
         /* Print warning on missing : */
-        | IF expr NEWLINE indentbody       { found("If statement"); yyerror("Warning: Missing ':' after if condition."); yynerrs++; }
-        | IF expr logic_line NEWLINE       { found("If statement"); found("Line"); yyerror("Warning: Missing ':' after if condition."); yynerrs++; }
+        | IF expr NEWLINE indentbody       { found("If statement"); yywarn("Missing ':' after if condition."); yynerrs++; }
+        | IF expr logic_line NEWLINE       { found("If statement"); found("Line"); yywarn("Missing ':' after if condition."); yynerrs++; }
         ;
 
 while
         : WHILE expr ':' NEWLINE indentbody { found("While loop"); }
         | WHILE expr ':' logic_line NEWLINE { found("While loop"); found("Line"); }
         /* Print warning on missing : */
-        | WHILE expr NEWLINE indentbody     { found("While loop"); yyerror("Warning: Missing ':' after while condition."); yynerrs++; }
-        | WHILE expr logic_line NEWLINE     { found("While loop"); found("Line"); yyerror("Warning: Missing ':' after while condition."); yynerrs++; }
+        | WHILE expr NEWLINE indentbody     { found("While loop"); yywarn("Missing ':' after while condition."); yynerrs++; }
+        | WHILE expr logic_line NEWLINE     { found("While loop"); found("Line"); yywarn("Missing ':' after while condition."); yynerrs++; }
         ;
 
 list
         : '[' content ']' { found("Literal List"); $$ = $2; }
         /* Contain errors in list declaration until closing bracket */
-        | '[' error ']'   { yyerror("Error in literal list declaration."); found("Literal List"); $$ = $2; }
-        | '[' content ')'   { yyerror("Warning: THISList"); found("Literal List"); $$ = $2; }
+        | '[' error ']'   { yyerror("in literal list declaration."); found("Literal List"); $$ = $2; }
+        | '[' content ')'   { yywarn("Misspelled ']' for ')' in List"); found("Literal List"); $$ = $2; }
         ;
 
 slice
         : VARIABLE '[' INTCONST ']'
         | VARIABLE '[' VARIABLE ']'
         /* Contain errors between brackets */
-        | VARIABLE '[' error ']' { yyerror("Error in array index."); }
+        | VARIABLE '[' error ']' { yyerror("in array index."); }
         ;
 
 tuple
         : '(' content ')' { found("Literal Tuple"); $$ = $2; }
         /* Contain errors in tuple declaration until closing parenthesis */
-        | '(' error ')'   { yyerror("Error in literal tuple."); found("Literal Tuple"); $$ = $2; }
-        | '(' content ']'   { yyerror("Error inTHIS literal tuple."); found("Literal Tuple"); $$ = $2; }
+        | '(' error ')'   { yyerror("in literal tuple."); found("Literal Tuple"); $$ = $2; }
+        | '(' content ']'   { yywarn("Mispelled ')' for ']' in literal tuple."); found("Literal Tuple"); $$ = $2; }
         ;
 
 merge
         : list '+' list     { found("Merge of Lists"); $$ = $1 + $3; }
-        | list error list   { yyerror("Warning: '+' expected between when merging lists."); found("Merge of Lists"); $$ = $1 + $3; }
+        | list error list   { yywarn("'+' expected between when merging lists."); found("Merge of Lists"); $$ = $1 + $3; }
         | tuple '+' tuple   { found("Merge of Tuples" ); $$ = $1 + $3; }
-        | tuple error tuple { yyerror("Warning: '+' expected between when merging tuples."); found("Merge of Tuples"); $$ = $1 + $3; }
+        | tuple error tuple { yywarn("'+' expected between when merging tuples."); found("Merge of Tuples"); $$ = $1 + $3; }
         ;
 
 content
@@ -211,9 +211,9 @@ builtin
         | PRINT builtin           { found("Print Function"); }
         | comp_function
         /* Contain errors between parenthesis */
-        | DEL '(' error ')'       { yyerror("Error in del() arguments."); found("Delete Function"); }
-        | LEN '(' error ')'       { yyerror("Error in len() arguments."); found("Length Function"); }
-        | PRINT '(' error ')'     { yyerror("Error in print() arguments."); found("Print Function"); }
+        | DEL '(' error ')'       { yyerror("in del() arguments."); found("Delete Function"); }
+        | LEN '(' error ')'       { yyerror("in len() arguments."); found("Length Function"); }
+        | PRINT '(' error ')'     { yyerror("in print() arguments."); found("Print Function"); }
         ;
 
 printable
@@ -227,7 +227,7 @@ printable
 func_call
         : VARIABLE '(' arglist ')'
         /* Contain errors between parenthesis */
-        | VARIABLE '(' error ')' { yyerror("Error in function argument list."); }
+        | VARIABLE '(' error ')' { yyerror("in function argument list."); }
         ;
 
 func
@@ -239,11 +239,11 @@ userfunc
         : DEF VARIABLE '(' def_arglist ')' ':' NEWLINE indentbody INDENT RETURN expr
         | DEF VARIABLE '(' def_arglist ')' ':' NEWLINE indentbody INDENT RETURN
         /* Contain error between parenthesis */
-        | DEF VARIABLE '(' error ')'   ':' NEWLINE indentbody INDENT RETURN expr { yyerror("Error in function definition argument list."); }
-        | DEF VARIABLE '(' error ')'   ':' NEWLINE indentbody INDENT RETURN      { yyerror("Error in function definition argument list."); }
+        | DEF VARIABLE '(' error ')'   ':' NEWLINE indentbody INDENT RETURN expr { yyerror("in function definition argument list."); }
+        | DEF VARIABLE '(' error ')'   ':' NEWLINE indentbody INDENT RETURN      { yyerror("in function definition argument list."); }
         /* Print Warning for missing for missing : */
-        | DEF VARIABLE '(' def_arglist ')' NEWLINE indentbody INDENT RETURN expr     { yyerror("Warning: Missing ':' after function definition."); yynerrs++; }
-        | DEF VARIABLE '(' def_arglist ')' NEWLINE indentbody INDENT RETURN          { yyerror("Warning: Missing ':' after function definition."); yynerrs++; }
+        | DEF VARIABLE '(' def_arglist ')' NEWLINE indentbody INDENT RETURN expr     { yywarn("Missing ':' after function definition."); yynerrs++; }
+        | DEF VARIABLE '(' def_arglist ')' NEWLINE indentbody INDENT RETURN          { yywarn("Missing ':' after function definition."); yynerrs++; }
         ;
 
 arglist
@@ -272,7 +272,7 @@ indentbody
 comp_function
         : CMP '(' list ',' list ')'   { 
                 if ( $3 != $5 ){ 
-                        yyerror("Error: List length mismatch when comparing lists of length %d and %d\n",$3,$5);
+                        yyerror("List length mismatch when comparing lists of length %d and %d\n",$3,$5);
                         yynerrs++;
                 } 
                 found("Compare Function with Lists");
@@ -280,7 +280,7 @@ comp_function
         }
         | CMP '(' tuple ',' tuple ')' { 
                 if ( $3 != $5 ){
-                        yyerror("Error: Tuple length mismatch when comparing tuples of length = %d and = %d\n",$3,$5); 
+                        yyerror("Tuple length mismatch when comparing tuples of length = %d and = %d\n",$3,$5); 
                         yynerrs++;
                 } 
                 $$ = 1;
@@ -291,9 +291,9 @@ comp_function
         | CMP '(' VARIABLE ',' tuple ')'    { found("Compare Function with Variable and Tuple"); }
         | CMP '(' list ',' VARIABLE ')'     { found("Compare Function with List and Variable"); }
         | CMP '(' VARIABLE ',' list ')'     { found("Compare Function with Variable and List"); }
-        | CMP '(' list ',' tuple ')'        { yyerror("Error: Mismatch of argument types (CMP LIST AND TUPLE)"); yynerrs++; }
-        | CMP '(' tuple ',' list ')'        { yyerror("Error: Mismatch of argument types (CMP LIST AND TUPLE)"); yynerrs++; }
-        | CMP '(' error ')'                 { yyerror("Error in cmp() arguments."); found("Compare Function"); }
+        | CMP '(' list ',' tuple ')'        { yyerror("Mismatch of argument types (CMP LIST AND TUPLE)"); yynerrs++; }
+        | CMP '(' tuple ',' list ')'        { yyerror("Mismatch of argument types (CMP LIST AND TUPLE)"); yynerrs++; }
+        | CMP '(' error ')'                 { yyerror("in cmp() arguments."); found("Compare Function"); }
         ;
 
 %%
