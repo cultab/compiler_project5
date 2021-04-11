@@ -17,6 +17,7 @@ output:
         number_sections: true
         toc: true
         pandoc_args: ["--highlight-style", "tango", "--toc-depth=4"]
+        keep_tex: true
 header-includes:
 caption-justification: centering
 toc-own-page: true
@@ -31,6 +32,9 @@ fontsize: 10pt
 είναι μέρος άλλου μέρους της εργασίας.
 
 # Πιθανές παρατηρήσεις-προβλήματα
+
+Ο κώδικας τρέχει και κάνει compile χωρίς προβλήματα πέρα από κάποια warning του
+κώδικα που παράγει το εργαλείο flex.
 
 Δεν έχουμε πάρει υπόψιν κάθε είδους λάθος που μπορεί να κάνει ένας χρήστης, αλλά
 μόνο πολύ συγκεκριμένα. Σε περίπτωση που ο χρήστης κάνει ένα λάθος για το οποίο δεν
